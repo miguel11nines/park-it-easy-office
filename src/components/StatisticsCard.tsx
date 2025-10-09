@@ -7,7 +7,7 @@ interface Booking {
   duration: "morning" | "afternoon" | "full";
   vehicleType: "car" | "motorcycle";
   userName: string;
-  slotNumber: number;
+  spotNumber: number;
 }
 
 interface StatisticsCardProps {

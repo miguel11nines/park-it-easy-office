@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ParkingSlotCard } from "@/components/ParkingSlotCard";
+import { ParkingSpotCard } from "@/components/ParkingSpotCard";
 import { BookingDialog } from "@/components/BookingDialog";
 import { StatisticsCard } from "@/components/StatisticsCard";
 import { Separator } from "@/components/ui/separator";
@@ -10,7 +10,7 @@ interface Booking {
   duration: "morning" | "afternoon" | "full";
   vehicleType: "car" | "motorcycle";
   userName: string;
-  slotNumber: number;
+  spotNumber: number;
 }
 
 const Index = () => {
@@ -21,7 +21,7 @@ const Index = () => {
       duration: "morning",
       vehicleType: "car",
       userName: "John Doe",
-      slotNumber: 1
+      spotNumber: 84
     },
     {
       id: "2",
@@ -29,15 +29,15 @@ const Index = () => {
       duration: "full",
       vehicleType: "motorcycle",
       userName: "Jane Smith",
-      slotNumber: 2
+      spotNumber: 85
     }
   ]);
   
-  const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
+  const [selectedSpot, setSelectedSpot] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const handleBookSlot = (slotNumber: number) => {
-    setSelectedSlot(slotNumber);
+  const handleBookSpot = (spotNumber: number) => {
+    setSelectedSpot(spotNumber);
     setDialogOpen(true);
   };
 
@@ -49,8 +49,8 @@ const Index = () => {
     setBookings([...bookings, newBooking]);
   };
 
-  const slot1Bookings = bookings.filter(b => b.slotNumber === 1);
-  const slot2Bookings = bookings.filter(b => b.slotNumber === 2);
+  const spot84Bookings = bookings.filter(b => b.spotNumber === 84);
+  const spot85Bookings = bookings.filter(b => b.spotNumber === 85);
 
   return (
     <div className="min-h-screen bg-background">
@@ -59,7 +59,7 @@ const Index = () => {
         <div className="container mx-auto max-w-6xl">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Parking at Work</h1>
           <p className="text-lg md:text-xl opacity-90">
-            Easy parking slot management for our team
+            Easy parking spot management for our team
           </p>
         </div>
       </div>
@@ -73,21 +73,19 @@ const Index = () => {
 
         <Separator />
 
-        {/* Parking Slots Section */}
+        {/* Parking Spots Section */}
         <section>
-          <h2 className="text-2xl font-bold mb-4">Available Parking Slots</h2>
+          <h2 className="text-2xl font-bold mb-4">Available Parking Spots</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ParkingSlotCard
-              slotNumber={1}
-              slotType="car"
-              currentBookings={slot1Bookings}
-              onBook={() => handleBookSlot(1)}
+            <ParkingSpotCard
+              spotNumber={84}
+              currentBookings={spot84Bookings}
+              onBook={() => handleBookSpot(84)}
             />
-            <ParkingSlotCard
-              slotNumber={2}
-              slotType="motorcycle-multiple"
-              currentBookings={slot2Bookings}
-              onBook={() => handleBookSlot(2)}
+            <ParkingSpotCard
+              spotNumber={85}
+              currentBookings={spot85Bookings}
+              onBook={() => handleBookSpot(85)}
             />
           </div>
         </section>
@@ -115,7 +113,7 @@ const Index = () => {
                     <div>
                       <div className="font-semibold">{booking.userName}</div>
                       <div className="text-sm text-muted-foreground">
-                        Slot {booking.slotNumber} • {booking.vehicleType === "car" ? "Car" : "Motorcycle"}
+                        Spot {booking.spotNumber} • {booking.vehicleType === "car" ? "Car" : "Motorcycle"}
                       </div>
                     </div>
                   </div>
@@ -130,12 +128,11 @@ const Index = () => {
       </div>
 
       {/* Booking Dialog */}
-      {selectedSlot && (
+      {selectedSpot && (
         <BookingDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
-          slotNumber={selectedSlot}
-          slotType={selectedSlot === 1 ? "car" : "motorcycle-multiple"}
+          spotNumber={selectedSpot}
           existingBookings={bookings}
           onConfirm={handleConfirmBooking}
         />

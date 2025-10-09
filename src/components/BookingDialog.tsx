@@ -17,25 +17,24 @@ interface Booking {
   duration: "morning" | "afternoon" | "full";
   vehicleType: "car" | "motorcycle";
   userName: string;
-  slotNumber: number;
+  spotNumber: number;
 }
 
 interface BookingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  slotNumber: number;
-  slotType: "car" | "motorcycle-multiple";
+  spotNumber: number;
   existingBookings: Booking[];
   onConfirm: (booking: {
     userName: string;
     date: string;
     duration: "morning" | "afternoon" | "full";
     vehicleType: "car" | "motorcycle";
-    slotNumber: number;
+    spotNumber: number;
   }) => void;
 }
 
-export const BookingDialog = ({ open, onOpenChange, slotNumber, slotType, existingBookings, onConfirm }: BookingDialogProps) => {
+export const BookingDialog = ({ open, onOpenChange, spotNumber, existingBookings, onConfirm }: BookingDialogProps) => {
   const [userName, setUserName] = useState("");
   const [date, setDate] = useState<Date>();
   const [duration, setDuration] = useState<"morning" | "afternoon" | "full">("full");
@@ -49,11 +48,11 @@ export const BookingDialog = ({ open, onOpenChange, slotNumber, slotType, existi
 
     const selectedDateStr = format(date, "yyyy-MM-dd");
     const bookingsForDate = existingBookings.filter(
-      b => b.date === selectedDateStr && b.slotNumber === slotNumber
+      b => b.date === selectedDateStr && b.spotNumber === spotNumber
     );
 
-    // Validation for car slot
-    if (slotType === "car" && vehicleType === "car") {
+    // Validation for car booking
+    if (vehicleType === "car") {
       const hasConflict = bookingsForDate.some(b => {
         if (b.vehicleType !== "car") return false;
         
@@ -64,31 +63,19 @@ export const BookingDialog = ({ open, onOpenChange, slotNumber, slotType, existi
       });
 
       if (hasConflict) {
-        toast.error("This slot is already booked for a car at that time");
+        toast.error("This spot is already booked for a car at that time");
         return;
       }
     }
 
-    // Validation for motorcycle slot
-    if (slotType === "motorcycle-multiple" && vehicleType === "motorcycle") {
+    // Validation for motorcycle booking
+    if (vehicleType === "motorcycle") {
       const motorcycleCount = bookingsForDate.filter(b => b.vehicleType === "motorcycle").length;
       
       if (motorcycleCount >= 4) {
-        toast.error("Maximum 4 motorcycles can book this slot");
+        toast.error("Maximum 4 motorcycles can book this spot");
         return;
       }
-    }
-
-    // Prevent car from booking motorcycle slot
-    if (slotType === "motorcycle-multiple" && vehicleType === "car") {
-      toast.error("Cars cannot book the motorcycle slot");
-      return;
-    }
-
-    // Prevent motorcycle from booking car slot
-    if (slotType === "car" && vehicleType === "motorcycle") {
-      toast.error("Motorcycles cannot book the car slot");
-      return;
     }
 
     onConfirm({
@@ -96,7 +83,7 @@ export const BookingDialog = ({ open, onOpenChange, slotNumber, slotType, existi
       date: selectedDateStr,
       duration,
       vehicleType,
-      slotNumber,
+      spotNumber,
     });
 
     toast.success("Parking slot booked successfully!");
@@ -113,7 +100,7 @@ export const BookingDialog = ({ open, onOpenChange, slotNumber, slotType, existi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Book Parking Slot {slotNumber}</DialogTitle>
+          <DialogTitle>Book Parking Spot {spotNumber}</DialogTitle>
           <DialogDescription>
             Fill in the details to reserve your parking spot
           </DialogDescription>

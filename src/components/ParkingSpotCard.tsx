@@ -12,29 +12,32 @@ interface Booking {
   userName: string;
 }
 
-interface ParkingSlotCardProps {
-  slotNumber: number;
-  slotType: "car" | "motorcycle-multiple";
+interface ParkingSpotCardProps {
+  spotNumber: number;
   currentBookings: Booking[];
   onBook: () => void;
 }
 
-export const ParkingSlotCard = ({ slotNumber, slotType, currentBookings, onBook }: ParkingSlotCardProps) => {
+export const ParkingSpotCard = ({ spotNumber, currentBookings, onBook }: ParkingSpotCardProps) => {
   const today = new Date().toISOString().split('T')[0];
   const todayBookings = currentBookings.filter(b => b.date === today);
   
   const getAvailabilityStatus = () => {
     if (todayBookings.length === 0) return "available";
     
-    if (slotType === "motorcycle-multiple") {
-      return todayBookings.length >= 4 ? "full" : "partial";
-    }
+    const motorcycles = todayBookings.filter(b => b.vehicleType === "motorcycle");
+    const cars = todayBookings.filter(b => b.vehicleType === "car");
     
-    const hasFullDay = todayBookings.some(b => b.duration === "full");
-    const hasMorning = todayBookings.some(b => b.duration === "morning");
-    const hasAfternoon = todayBookings.some(b => b.duration === "afternoon");
+    // Check if motorcycle limit reached
+    const motorcyclesFull = motorcycles.length >= 4;
     
-    if (hasFullDay || (hasMorning && hasAfternoon)) return "full";
+    // Check if car slots are full
+    const hasCarFullDay = cars.some(b => b.duration === "full");
+    const hasCarMorning = cars.some(b => b.duration === "morning");
+    const hasCarAfternoon = cars.some(b => b.duration === "afternoon");
+    const carsFull = hasCarFullDay || (hasCarMorning && hasCarAfternoon);
+    
+    if (motorcyclesFull && carsFull) return "full";
     return "partial";
   };
 
@@ -63,19 +66,16 @@ export const ParkingSlotCard = ({ slotNumber, slotType, currentBookings, onBook 
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            {slotType === "car" ? (
-              <Car className="h-5 w-5 text-primary" />
-            ) : (
-              <Bike className="h-5 w-5 text-primary" />
-            )}
-            Parking Slot {slotNumber}
+            <Car className="h-5 w-5 text-primary" />
+            <Bike className="h-5 w-5 text-primary" />
+            Parking Spot {spotNumber}
           </CardTitle>
           <Badge className={statusConfig[status].badgeClass}>
             {statusConfig[status].badge}
           </Badge>
         </div>
         <CardDescription>
-          {slotType === "car" ? "Car Only" : "Multiple Motorcycles"}
+          Cars & Motorcycles (Max 4 motorcycles)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -110,7 +110,7 @@ export const ParkingSlotCard = ({ slotNumber, slotType, currentBookings, onBook 
           className="w-full bg-gradient-primary"
           disabled={status === "full"}
         >
-          {status === "full" ? "Fully Booked" : "Book This Slot"}
+          {status === "full" ? "Fully Booked" : "Book This Spot"}
         </Button>
       </CardContent>
     </Card>
