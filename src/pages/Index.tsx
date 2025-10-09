@@ -78,7 +78,7 @@ const Index = () => {
       <div className="container mx-auto max-w-6xl px-4 py-8 space-y-8">
         {/* Statistics Section */}
         <section>
-          <h2 className="text-2xl font-bold mb-4">Statistics</h2>
+          <h2 className="text-2xl font-bold mb-4">Week Statistics</h2>
           <StatisticsCard bookings={activeBookings} />
         </section>
 
