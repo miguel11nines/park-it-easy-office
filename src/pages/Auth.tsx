@@ -9,7 +9,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
-const emailSchema = z.string().email("Please enter a valid email address").max(255);
+const ALLOWED_EMAIL_DOMAIN = "@lht.dlh.de";
+
+const emailSchema = z.string()
+  .email("Please enter a valid email address")
+  .max(255)
+  .refine((email) => email.endsWith(ALLOWED_EMAIL_DOMAIN), {
+    message: `Only ${ALLOWED_EMAIL_DOMAIN} email addresses are allowed`,
+  });
+
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters").max(72);
 const nameSchema = z.string().trim().min(1, "Name is required").max(100);
 
@@ -221,12 +229,15 @@ export default function Auth() {
                   <Input
                     id="signup-email"
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder="your@lht.dlh.de"
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
                     required
                     disabled={isLoading}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Only @lht.dlh.de email addresses are allowed
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
