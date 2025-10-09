@@ -11,10 +11,21 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+interface Booking {
+  id: string;
+  date: string;
+  duration: "morning" | "afternoon" | "full";
+  vehicleType: "car" | "motorcycle";
+  userName: string;
+  slotNumber: number;
+}
+
 interface BookingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   slotNumber: number;
+  slotType: "car" | "motorcycle-multiple";
+  existingBookings: Booking[];
   onConfirm: (booking: {
     userName: string;
     date: string;
@@ -24,7 +35,7 @@ interface BookingDialogProps {
   }) => void;
 }
 
-export const BookingDialog = ({ open, onOpenChange, slotNumber, onConfirm }: BookingDialogProps) => {
+export const BookingDialog = ({ open, onOpenChange, slotNumber, slotType, existingBookings, onConfirm }: BookingDialogProps) => {
   const [userName, setUserName] = useState("");
   const [date, setDate] = useState<Date>();
   const [duration, setDuration] = useState<"morning" | "afternoon" | "full">("full");
@@ -36,9 +47,53 @@ export const BookingDialog = ({ open, onOpenChange, slotNumber, onConfirm }: Boo
       return;
     }
 
+    const selectedDateStr = format(date, "yyyy-MM-dd");
+    const bookingsForDate = existingBookings.filter(
+      b => b.date === selectedDateStr && b.slotNumber === slotNumber
+    );
+
+    // Validation for car slot
+    if (slotType === "car" && vehicleType === "car") {
+      const hasConflict = bookingsForDate.some(b => {
+        if (b.vehicleType !== "car") return false;
+        
+        // Check for time conflicts
+        if (duration === "full" || b.duration === "full") return true;
+        if (duration === b.duration) return true;
+        return false;
+      });
+
+      if (hasConflict) {
+        toast.error("This slot is already booked for a car at that time");
+        return;
+      }
+    }
+
+    // Validation for motorcycle slot
+    if (slotType === "motorcycle-multiple" && vehicleType === "motorcycle") {
+      const motorcycleCount = bookingsForDate.filter(b => b.vehicleType === "motorcycle").length;
+      
+      if (motorcycleCount >= 4) {
+        toast.error("Maximum 4 motorcycles can book this slot");
+        return;
+      }
+    }
+
+    // Prevent car from booking motorcycle slot
+    if (slotType === "motorcycle-multiple" && vehicleType === "car") {
+      toast.error("Cars cannot book the motorcycle slot");
+      return;
+    }
+
+    // Prevent motorcycle from booking car slot
+    if (slotType === "car" && vehicleType === "motorcycle") {
+      toast.error("Motorcycles cannot book the car slot");
+      return;
+    }
+
     onConfirm({
       userName,
-      date: format(date, "yyyy-MM-dd"),
+      date: selectedDateStr,
       duration,
       vehicleType,
       slotNumber,

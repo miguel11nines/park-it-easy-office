@@ -27,7 +27,7 @@ export const ParkingSlotCard = ({ slotNumber, slotType, currentBookings, onBook 
     if (todayBookings.length === 0) return "available";
     
     if (slotType === "motorcycle-multiple") {
-      return todayBookings.length >= 3 ? "full" : "partial";
+      return todayBookings.length >= 4 ? "full" : "partial";
     }
     
     const hasFullDay = todayBookings.some(b => b.duration === "full");

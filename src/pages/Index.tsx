@@ -135,6 +135,8 @@ const Index = () => {
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           slotNumber={selectedSlot}
+          slotType={selectedSlot === 1 ? "car" : "motorcycle-multiple"}
+          existingBookings={bookings}
           onConfirm={handleConfirmBooking}
         />
       )}
