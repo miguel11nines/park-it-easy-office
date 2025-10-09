@@ -51,29 +51,35 @@ export const BookingDialog = ({ open, onOpenChange, spotNumber, existingBookings
       b => b.date === selectedDateStr && b.spotNumber === spotNumber
     );
 
-    // Validation for car booking
-    if (vehicleType === "car") {
-      const hasConflict = bookingsForDate.some(b => {
-        if (b.vehicleType !== "car") return false;
-        
-        // Check for time conflicts
-        if (duration === "full" || b.duration === "full") return true;
-        if (duration === b.duration) return true;
-        return false;
-      });
+    // Overlap helper
+    const overlaps = (a: "morning" | "afternoon" | "full", b: "morning" | "afternoon" | "full") => {
+      if (a === "full" || b === "full") return true;
+      return a === b; // morning overlaps morning, afternoon overlaps afternoon
+    };
 
-      if (hasConflict) {
-        toast.error("This spot is already booked for a car at that time");
+    // Validation for car booking: must not overlap with any car or motorcycle
+    if (vehicleType === "car") {
+      const conflict = bookingsForDate.some(b => overlaps(duration, b.duration));
+      if (conflict) {
+        toast.error("This spot already has a booking at that time");
         return;
       }
     }
 
-    // Validation for motorcycle booking
+    // Validation for motorcycle booking: must not overlap with cars and max 4 overlapping motorcycles
     if (vehicleType === "motorcycle") {
-      const motorcycleCount = bookingsForDate.filter(b => b.vehicleType === "motorcycle").length;
-      
-      if (motorcycleCount >= 4) {
-        toast.error("Maximum 4 motorcycles can book this spot");
+      const carConflict = bookingsForDate.some(b => b.vehicleType === "car" && overlaps(duration, b.duration));
+      if (carConflict) {
+        toast.error("A car is booked for that time on this spot");
+        return;
+      }
+
+      const overlappingMotoCount = bookingsForDate.filter(
+        b => b.vehicleType === "motorcycle" && overlaps(duration, b.duration)
+      ).length;
+
+      if (overlappingMotoCount >= 4) {
+        toast.error("Maximum 4 motorcycles allowed at the same time on this spot");
         return;
       }
     }
@@ -86,7 +92,7 @@ export const BookingDialog = ({ open, onOpenChange, spotNumber, existingBookings
       spotNumber,
     });
 
-    toast.success("Parking slot booked successfully!");
+    toast.success("Parking spot booked successfully!");
     
     // Reset form
     setUserName("");
