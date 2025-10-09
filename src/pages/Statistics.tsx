@@ -189,49 +189,59 @@ const Statistics = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="bg-gradient-primary text-primary-foreground py-12 px-4">
+      <div className="bg-gradient-hero text-primary-foreground py-8 md:py-12 px-4 shadow-lg">
         <div className="container mx-auto max-w-6xl">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="mb-4 text-primary-foreground hover:bg-white/10"
+            className="mb-4 text-primary-foreground hover:bg-white/10 animate-fade-in"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Bookings
           </Button>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Statistics</h1>
-          <p className="text-lg md:text-xl opacity-90">
-            Detailed insights and usage metrics
-          </p>
+          <div className="animate-fade-in">
+            <h1 className="text-3xl md:text-5xl font-bold mb-2 md:mb-4">Statistics</h1>
+            <p className="text-base md:text-xl opacity-90">
+              Detailed insights and usage metrics
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="container mx-auto max-w-6xl px-4 py-8">
+      <div className="container mx-auto max-w-6xl px-4 py-6 md:py-8">
         {loading ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 animate-fade-in">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
             <p className="text-muted-foreground">Loading statistics...</p>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6 md:space-y-8">
             {/* Main Stats Grid */}
-            <section>
-              <h2 className="text-2xl font-bold mb-4">Overview</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {stats.map((stat) => (
-                  <Card key={stat.title} className="overflow-hidden transition-smooth hover:shadow-lg">
+            <section className="animate-fade-in">
+              <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-2">
+                <div className="h-1 w-8 bg-gradient-primary rounded"></div>
+                Overview
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                {stats.map((stat, index) => (
+                  <Card 
+                    key={stat.title} 
+                    className="overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 animate-scale-in"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                      <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
                         {stat.title}
                       </CardTitle>
-                      <CardDescription className="text-xs">
+                      <CardDescription className="text-[10px] sm:text-xs">
                         {stat.description}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center justify-between">
-                        <div className="text-3xl font-bold">{stat.value}</div>
-                        <div className={`p-3 rounded-lg ${stat.gradient}`}>
-                          <stat.icon className="h-6 w-6 text-white" />
+                        <div className="text-2xl sm:text-3xl font-bold truncate">{stat.value}</div>
+                        <div className={`p-2 sm:p-3 rounded-lg ${stat.gradient} shadow-md`}>
+                          <stat.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                         </div>
                       </div>
                     </CardContent>
@@ -241,40 +251,43 @@ const Statistics = () => {
             </section>
 
             {/* Detailed Breakdown */}
-            <section>
-              <h2 className="text-2xl font-bold mb-4">Breakdown</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
+            <section className="animate-fade-in">
+              <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-2">
+                <div className="h-1 w-8 bg-gradient-success rounded"></div>
+                Breakdown
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <Card className="transition-all hover:shadow-xl">
                   <CardHeader>
-                    <CardTitle>Vehicle Type Distribution</CardTitle>
+                    <CardTitle className="text-base sm:text-lg">Vehicle Type Distribution</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <div className="flex justify-between mb-2">
-                        <span className="text-sm font-medium flex items-center gap-2">
-                          <Car className="h-4 w-4" />
+                        <span className="text-xs sm:text-sm font-medium flex items-center gap-2">
+                          <Car className="h-3 w-3 sm:h-4 sm:w-4" />
                           Cars
                         </span>
-                        <span className="text-sm font-bold">{carBookings}</span>
+                        <span className="text-xs sm:text-sm font-bold">{carBookings}</span>
                       </div>
                       <div className="w-full bg-muted rounded-full h-2">
                         <div
-                          className="bg-gradient-primary h-2 rounded-full transition-all"
+                          className="bg-gradient-primary h-2 rounded-full transition-all duration-500"
                           style={{ width: `${(carBookings / totalBookings) * 100 || 0}%` }}
                         />
                       </div>
                     </div>
                     <div>
                       <div className="flex justify-between mb-2">
-                        <span className="text-sm font-medium flex items-center gap-2">
-                          <Bike className="h-4 w-4" />
+                        <span className="text-xs sm:text-sm font-medium flex items-center gap-2">
+                          <Bike className="h-3 w-3 sm:h-4 sm:w-4" />
                           Motorcycles
                         </span>
-                        <span className="text-sm font-bold">{motorcycleBookings}</span>
+                        <span className="text-xs sm:text-sm font-bold">{motorcycleBookings}</span>
                       </div>
                       <div className="w-full bg-muted rounded-full h-2">
                         <div
-                          className="bg-gradient-accent h-2 rounded-full transition-all"
+                          className="bg-gradient-accent h-2 rounded-full transition-all duration-500"
                           style={{ width: `${(motorcycleBookings / totalBookings) * 100 || 0}%` }}
                         />
                       </div>
@@ -282,31 +295,31 @@ const Statistics = () => {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="transition-all hover:shadow-xl">
                   <CardHeader>
-                    <CardTitle>Spot Usage</CardTitle>
+                    <CardTitle className="text-base sm:text-lg">Spot Usage</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <div className="flex justify-between mb-2">
-                        <span className="text-sm font-medium">Spot 84</span>
-                        <span className="text-sm font-bold">{spot84Count}</span>
+                        <span className="text-xs sm:text-sm font-medium">Spot 84</span>
+                        <span className="text-xs sm:text-sm font-bold">{spot84Count}</span>
                       </div>
                       <div className="w-full bg-muted rounded-full h-2">
                         <div
-                          className="bg-gradient-success h-2 rounded-full transition-all"
+                          className="bg-gradient-success h-2 rounded-full transition-all duration-500"
                           style={{ width: `${(spot84Count / totalBookings) * 100 || 0}%` }}
                         />
                       </div>
                     </div>
                     <div>
                       <div className="flex justify-between mb-2">
-                        <span className="text-sm font-medium">Spot 85</span>
-                        <span className="text-sm font-bold">{spot85Count}</span>
+                        <span className="text-xs sm:text-sm font-medium">Spot 85</span>
+                        <span className="text-xs sm:text-sm font-bold">{spot85Count}</span>
                       </div>
                       <div className="w-full bg-muted rounded-full h-2">
                         <div
-                          className="bg-gradient-accent h-2 rounded-full transition-all"
+                          className="bg-gradient-accent h-2 rounded-full transition-all duration-500"
                           style={{ width: `${(spot85Count / totalBookings) * 100 || 0}%` }}
                         />
                       </div>

@@ -62,52 +62,58 @@ export const ParkingSpotCard = ({ spotNumber, currentBookings, onBook }: Parking
   };
 
   return (
-    <Card className={cn("transition-smooth hover:shadow-lg", statusConfig[status].cardClass)}>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Car className="h-5 w-5 text-primary" />
-            <Bike className="h-5 w-5 text-primary" />
-            Parking Spot {spotNumber}
+    <Card className={cn("transition-all duration-300 hover:shadow-xl hover:-translate-y-1 animate-scale-in", statusConfig[status].cardClass)}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <div className="flex gap-1">
+              <Car className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <Bike className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+            </div>
+            <span className="truncate">Parking Spot {spotNumber}</span>
           </CardTitle>
-          <Badge className={statusConfig[status].badgeClass}>
+          <Badge className={cn("whitespace-nowrap text-xs", statusConfig[status].badgeClass)}>
             {statusConfig[status].badge}
           </Badge>
         </div>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm">
           Cars & Motorcycles (Max 4 motorcycles)
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4">
         {todayBookings.length > 0 ? (
           <div className="space-y-2">
-            <div className="text-sm font-medium flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+            <div className="text-xs sm:text-sm font-medium flex items-center gap-2 text-muted-foreground">
+              <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
               Today's Bookings
             </div>
-            {todayBookings.map((booking) => (
-              <div key={booking.id} className="flex items-center justify-between p-2 bg-muted rounded-md">
-                <div className="flex items-center gap-2">
-                  {booking.vehicleType === "car" ? (
-                    <Car className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <Bike className="h-4 w-4 text-muted-foreground" />
-                  )}
-                  <span className="text-sm">{booking.userName}</span>
+            <div className="space-y-1.5 max-h-32 overflow-y-auto">
+              {todayBookings.map((booking) => (
+                <div key={booking.id} className="flex items-center justify-between p-2 bg-gradient-to-r from-muted to-transparent rounded-md">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    {booking.vehicleType === "car" ? (
+                      <Car className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                    ) : (
+                      <Bike className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                    )}
+                    <span className="text-xs sm:text-sm truncate">{booking.userName}</span>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] sm:text-xs whitespace-nowrap ml-2">
+                    {booking.duration === "full" ? "All Day" : 
+                     booking.duration === "morning" ? "AM" : "PM"}
+                  </Badge>
                 </div>
-                <Badge variant="outline" className="text-xs">
-                  {booking.duration === "full" ? "All Day" : 
-                   booking.duration === "morning" ? "Morning" : "Afternoon"}
-                </Badge>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">No bookings for today</p>
+          <div className="text-center py-4">
+            <p className="text-xs sm:text-sm text-muted-foreground">No bookings for today</p>
+          </div>
         )}
         <Button 
           onClick={onBook} 
-          className="w-full bg-gradient-primary"
+          className="w-full bg-gradient-primary shadow-md hover:shadow-lg transition-all hover:scale-105 text-sm sm:text-base"
           disabled={status === "full"}
         >
           {status === "full" ? "Fully Booked" : "Book This Spot"}
