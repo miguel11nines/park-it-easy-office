@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { ParkingSpotCard } from "@/components/ParkingSpotCard";
-import { BookingDialog } from "@/components/BookingDialog";
+import { BookingDialogWithValidation } from "@/components/BookingDialogWithValidation";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { BarChart3, Calendar } from "lucide-react";
+import { BarChart3, Calendar, LogOut, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Booking {
   id: string;
@@ -19,6 +20,7 @@ interface Booking {
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedSpot, setSelectedSpot] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -26,14 +28,19 @@ const Index = () => {
 
   // Fetch bookings from database
   useEffect(() => {
-    fetchBookings();
-  }, []);
+    if (user) {
+      fetchBookings();
+    }
+  }, [user]);
 
   const fetchBookings = async () => {
     try {
+      if (!user) return;
+
       const { data, error } = await supabase
         .from('bookings')
         .select('*')
+        .eq('user_id', user.id)
         .order('date', { ascending: true });
 
       if (error) throw error;
@@ -64,10 +71,16 @@ const Index = () => {
 
   const handleConfirmBooking = async (booking: Omit<Booking, "id">) => {
     try {
+      if (!user) {
+        toast.error('You must be logged in to book a spot');
+        return;
+      }
+
       const { error } = await supabase
         .from('bookings')
         .insert({
-          user_name: booking.userName,
+          user_id: user.id,
+          user_name: user.user_metadata?.user_name || user.email || 'Unknown',
           date: booking.date,
           duration: booking.duration,
           vehicle_type: booking.vehicleType,
@@ -114,20 +127,36 @@ const Index = () => {
       <div className="bg-gradient-hero text-primary-foreground py-8 md:py-12 px-4 shadow-lg">
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="animate-fade-in">
+            <div className="animate-fade-in flex-1">
               <h1 className="text-3xl md:text-5xl font-bold mb-2 md:mb-4">Parking at Work</h1>
               <p className="text-base md:text-xl opacity-90">
                 Easy parking spot management for our team
               </p>
+              {user && (
+                <div className="flex items-center gap-2 mt-3 text-sm opacity-80">
+                  <User className="h-4 w-4" />
+                  <span>{user.user_metadata?.user_name || user.email}</span>
+                </div>
+              )}
             </div>
-            <Button
-              onClick={() => navigate('/statistics')}
-              className="bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-sm transition-all hover:scale-105 self-start md:self-auto"
-              size="lg"
-            >
-              <BarChart3 className="h-5 w-5 mr-2" />
-              <span className="hidden sm:inline">View</span> Statistics
-            </Button>
+            <div className="flex gap-2 self-start md:self-auto">
+              <Button
+                onClick={() => navigate('/statistics')}
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-sm transition-all hover:scale-105"
+                size="lg"
+              >
+                <BarChart3 className="h-5 w-5 mr-2" />
+                <span className="hidden sm:inline">View</span> Statistics
+              </Button>
+              <Button
+                onClick={signOut}
+                variant="outline"
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-sm transition-all hover:scale-105"
+                size="lg"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -225,11 +254,10 @@ const Index = () => {
 
       {/* Booking Dialog */}
       {selectedSpot && (
-        <BookingDialog
+        <BookingDialogWithValidation
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           spotNumber={selectedSpot}
-          existingBookings={activeBookings}
           onConfirm={handleConfirmBooking}
         />
       )}

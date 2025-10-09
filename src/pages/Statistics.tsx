@@ -5,6 +5,7 @@ import { ArrowLeft, TrendingUp, Calendar, Car, Bike, Percent, Clock } from "luci
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Booking {
   id: string;
@@ -17,6 +18,7 @@ interface Booking {
 
 const Statistics = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,9 +28,12 @@ const Statistics = () => {
 
   const fetchBookings = async () => {
     try {
+      if (!user) return;
+
       const { data, error } = await supabase
         .from('bookings')
         .select('*')
+        .eq('user_id', user.id)
         .order('date', { ascending: true });
 
       if (error) throw error;

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -10,6 +9,7 @@ import { CalendarIcon, Car, Bike } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Booking {
   id: string;
@@ -20,11 +20,10 @@ interface Booking {
   spotNumber: number;
 }
 
-interface BookingDialogProps {
+interface BookingDialogWithValidationProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   spotNumber: number;
-  existingBookings: Booking[];
   onConfirm: (booking: {
     date: string;
     duration: "morning" | "afternoon" | "full";
@@ -33,69 +32,99 @@ interface BookingDialogProps {
   }) => void;
 }
 
-export const BookingDialog = ({ open, onOpenChange, spotNumber, existingBookings, onConfirm }: BookingDialogProps) => {
+export const BookingDialogWithValidation = ({ 
+  open, 
+  onOpenChange, 
+  spotNumber, 
+  onConfirm 
+}: BookingDialogWithValidationProps) => {
   const [date, setDate] = useState<Date>();
   const [duration, setDuration] = useState<"morning" | "afternoon" | "full">("full");
   const [vehicleType, setVehicleType] = useState<"car" | "motorcycle">("car");
+  const [isValidating, setIsValidating] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!date) {
       toast.error("Please select a date");
       return;
     }
 
+    setIsValidating(true);
     const selectedDateStr = format(date, "yyyy-MM-dd");
-    const bookingsForDate = existingBookings.filter(
-      b => b.date === selectedDateStr && b.spotNumber === spotNumber
-    );
 
-    // Overlap helper
-    const overlaps = (a: "morning" | "afternoon" | "full", b: "morning" | "afternoon" | "full") => {
-      if (a === "full" || b === "full") return true;
-      return a === b; // morning overlaps morning, afternoon overlaps afternoon
-    };
+    try {
+      // Fetch ALL bookings for this spot and date to validate conflicts
+      const { data: existingBookings, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('spot_number', spotNumber)
+        .eq('date', selectedDateStr);
 
-    // Validation for car booking: must not overlap with any car or motorcycle
-    if (vehicleType === "car") {
-      const conflict = bookingsForDate.some(b => overlaps(duration, b.duration));
-      if (conflict) {
-        toast.error("This spot already has a booking at that time");
-        return;
+      if (error) throw error;
+
+      const bookingsForDate = existingBookings || [];
+
+      // Overlap helper
+      const overlaps = (a: "morning" | "afternoon" | "full", b: "morning" | "afternoon" | "full") => {
+        if (a === "full" || b === "full") return true;
+        return a === b;
+      };
+
+      // Validation for car booking: must not overlap with any car or motorcycle
+      if (vehicleType === "car") {
+        const conflict = bookingsForDate.some(b => 
+          overlaps(duration, b.duration as "morning" | "afternoon" | "full")
+        );
+        if (conflict) {
+          toast.error("This spot already has a booking at that time");
+          setIsValidating(false);
+          return;
+        }
       }
+
+      // Validation for motorcycle booking: must not overlap with cars and max 4 overlapping motorcycles
+      if (vehicleType === "motorcycle") {
+        const carConflict = bookingsForDate.some(b => 
+          b.vehicle_type === "car" && 
+          overlaps(duration, b.duration as "morning" | "afternoon" | "full")
+        );
+        if (carConflict) {
+          toast.error("A car is booked for that time on this spot");
+          setIsValidating(false);
+          return;
+        }
+
+        const overlappingMotoCount = bookingsForDate.filter(
+          b => b.vehicle_type === "motorcycle" && 
+               overlaps(duration, b.duration as "morning" | "afternoon" | "full")
+        ).length;
+
+        if (overlappingMotoCount >= 4) {
+          toast.error("Maximum 4 motorcycles allowed at the same time on this spot");
+          setIsValidating(false);
+          return;
+        }
+      }
+
+      // All validation passed
+      onConfirm({
+        date: selectedDateStr,
+        duration,
+        vehicleType,
+        spotNumber,
+      });
+
+      // Reset form
+      setDate(undefined);
+      setDuration("full");
+      setVehicleType("car");
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error validating booking:', error);
+      toast.error('Failed to validate booking. Please try again.');
+    } finally {
+      setIsValidating(false);
     }
-
-    // Validation for motorcycle booking: must not overlap with cars and max 4 overlapping motorcycles
-    if (vehicleType === "motorcycle") {
-      const carConflict = bookingsForDate.some(b => b.vehicleType === "car" && overlaps(duration, b.duration));
-      if (carConflict) {
-        toast.error("A car is booked for that time on this spot");
-        return;
-      }
-
-      const overlappingMotoCount = bookingsForDate.filter(
-        b => b.vehicleType === "motorcycle" && overlaps(duration, b.duration)
-      ).length;
-
-      if (overlappingMotoCount >= 4) {
-        toast.error("Maximum 4 motorcycles allowed at the same time on this spot");
-        return;
-      }
-    }
-
-    onConfirm({
-      date: selectedDateStr,
-      duration,
-      vehicleType,
-      spotNumber,
-    });
-
-    toast.success("Parking spot booked successfully!");
-    
-    // Reset form
-    setDate(undefined);
-    setDuration("full");
-    setVehicleType("car");
-    onOpenChange(false);
   };
 
   return (
@@ -177,11 +206,11 @@ export const BookingDialog = ({ open, onOpenChange, spotNumber, existingBookings
         </div>
 
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1" disabled={isValidating}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} className="flex-1 bg-gradient-primary">
-            Confirm Booking
+          <Button onClick={handleSubmit} className="flex-1 bg-gradient-primary" disabled={isValidating}>
+            {isValidating ? "Validating..." : "Confirm Booking"}
           </Button>
         </div>
       </DialogContent>
