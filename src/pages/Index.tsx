@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { ParkingSpotCard } from "@/components/ParkingSpotCard";
 import { BookingDialog } from "@/components/BookingDialog";
-import { StatisticsCard } from "@/components/StatisticsCard";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { BarChart3 } from "lucide-react";
 
 interface Booking {
   id: string;
@@ -17,6 +18,7 @@ interface Booking {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedSpot, setSelectedSpot] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -111,10 +113,22 @@ const Index = () => {
       {/* Hero Section */}
       <div className="bg-gradient-primary text-primary-foreground py-12 px-4">
         <div className="container mx-auto max-w-6xl">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Parking at Work</h1>
-          <p className="text-lg md:text-xl opacity-90">
-            Easy parking spot management for our team
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">Parking at Work</h1>
+              <p className="text-lg md:text-xl opacity-90">
+                Easy parking spot management for our team
+              </p>
+            </div>
+            <Button
+              onClick={() => navigate('/statistics')}
+              className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+              size="lg"
+            >
+              <BarChart3 className="h-5 w-5 mr-2" />
+              View Statistics
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -125,14 +139,6 @@ const Index = () => {
           </div>
         ) : (
           <>
-            {/* Week Statistics Section */}
-            <section>
-              <h2 className="text-2xl font-bold mb-4">Week Statistics</h2>
-              <StatisticsCard bookings={activeBookings} />
-            </section>
-
-            <Separator />
-
             {/* Parking Spots Section */}
             <section>
               <h2 className="text-2xl font-bold mb-4">Available Parking Spots</h2>
