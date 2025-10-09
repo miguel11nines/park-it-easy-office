@@ -21,6 +21,7 @@ export type Database = {
           duration: Database["public"]["Enums"]["booking_duration"]
           id: string
           spot_number: number
+          user_id: string | null
           user_name: string
           vehicle_type: Database["public"]["Enums"]["vehicle_type"]
         }
@@ -30,6 +31,7 @@ export type Database = {
           duration: Database["public"]["Enums"]["booking_duration"]
           id?: string
           spot_number: number
+          user_id?: string | null
           user_name: string
           vehicle_type: Database["public"]["Enums"]["vehicle_type"]
         }
@@ -39,6 +41,7 @@ export type Database = {
           duration?: Database["public"]["Enums"]["booking_duration"]
           id?: string
           spot_number?: number
+          user_id?: string | null
           user_name?: string
           vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
         }
@@ -46,7 +49,16 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      booking_availability: {
+        Row: {
+          booking_count: number | null
+          date: string | null
+          duration: Database["public"]["Enums"]["booking_duration"] | null
+          spot_number: number | null
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
