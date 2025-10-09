@@ -3,6 +3,8 @@ import { ParkingSpotCard } from "@/components/ParkingSpotCard";
 import { BookingDialog } from "@/components/BookingDialog";
 import { StatisticsCard } from "@/components/StatisticsCard";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface Booking {
   id: string;
@@ -49,8 +51,17 @@ const Index = () => {
     setBookings([...bookings, newBooking]);
   };
 
-  const spot84Bookings = bookings.filter(b => b.spotNumber === 84);
-  const spot85Bookings = bookings.filter(b => b.spotNumber === 85);
+  const handleUnbook = (bookingId: string) => {
+    setBookings(bookings.filter(b => b.id !== bookingId));
+    toast.success("Booking cancelled successfully");
+  };
+
+  // Filter out expired bookings (past dates)
+  const today = new Date().toISOString().split('T')[0];
+  const activeBookings = bookings.filter(b => b.date >= today);
+
+  const spot84Bookings = activeBookings.filter(b => b.spotNumber === 84);
+  const spot85Bookings = activeBookings.filter(b => b.spotNumber === 85);
 
   return (
     <div className="min-h-screen bg-background">
@@ -68,7 +79,7 @@ const Index = () => {
         {/* Statistics Section */}
         <section>
           <h2 className="text-2xl font-bold mb-4">Statistics</h2>
-          <StatisticsCard bookings={bookings} />
+          <StatisticsCard bookings={activeBookings} />
         </section>
 
         <Separator />
@@ -93,37 +104,51 @@ const Index = () => {
         {/* All Bookings Section */}
         <section>
           <h2 className="text-2xl font-bold mb-4">Upcoming Bookings</h2>
-          <div className="space-y-3">
-            {bookings
-              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-              .map((booking) => (
-                <div
-                  key={booking.id}
-                  className="flex items-center justify-between p-4 bg-card border rounded-lg hover:shadow-md transition-smooth"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="text-center min-w-[60px]">
-                      <div className="text-2xl font-bold text-primary">
-                        {new Date(booking.date).getDate()}
+          {activeBookings.length > 0 ? (
+            <div className="space-y-3">
+              {activeBookings
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                .map((booking) => (
+                  <div
+                    key={booking.id}
+                    className="flex items-center justify-between p-4 bg-card border rounded-lg hover:shadow-md transition-smooth"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="text-center min-w-[60px]">
+                        <div className="text-2xl font-bold text-primary">
+                          {new Date(booking.date).getDate()}
+                        </div>
+                        <div className="text-xs text-muted-foreground uppercase">
+                          {new Date(booking.date).toLocaleDateString('en-US', { month: 'short' })}
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground uppercase">
-                        {new Date(booking.date).toLocaleDateString('en-US', { month: 'short' })}
+                      <div>
+                        <div className="font-semibold">{booking.userName}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Spot {booking.spotNumber} • {booking.vehicleType === "car" ? "Car" : "Motorcycle"}
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <div className="font-semibold">{booking.userName}</div>
-                      <div className="text-sm text-muted-foreground">
-                        Spot {booking.spotNumber} • {booking.vehicleType === "car" ? "Car" : "Motorcycle"}
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm font-medium px-3 py-1 bg-muted rounded-full">
+                        {booking.duration === "full" ? "All Day" : 
+                         booking.duration === "morning" ? "Morning" : "Afternoon"}
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleUnbook(booking.id)}
+                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        Unbook
+                      </Button>
                     </div>
                   </div>
-                  <div className="text-sm font-medium px-3 py-1 bg-muted rounded-full">
-                    {booking.duration === "full" ? "All Day" : 
-                     booking.duration === "morning" ? "Morning" : "Afternoon"}
-                  </div>
-                </div>
-              ))}
-          </div>
+                ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No upcoming bookings</p>
+          )}
         </section>
       </div>
 
@@ -133,7 +158,7 @@ const Index = () => {
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           spotNumber={selectedSpot}
-          existingBookings={bookings}
+          existingBookings={activeBookings}
           onConfirm={handleConfirmBooking}
         />
       )}
