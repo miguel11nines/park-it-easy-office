@@ -30,10 +30,10 @@ const Statistics = () => {
     try {
       if (!user) return;
 
+      // Fetch ALL bookings from all users for statistics
       const { data, error } = await supabase
         .from('bookings')
         .select('*')
-        .eq('user_id', user.id)
         .order('date', { ascending: true });
 
       if (error) throw error;

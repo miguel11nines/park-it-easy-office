@@ -37,10 +37,10 @@ const Index = () => {
     try {
       if (!user) return;
 
+      // Fetch ALL bookings to show correct parking spot availability
       const { data, error } = await supabase
         .from('bookings')
         .select('*')
-        .eq('user_id', user.id)
         .order('date', { ascending: true });
 
       if (error) throw error;
@@ -117,6 +117,9 @@ const Index = () => {
   // Filter out expired bookings (past dates)
   const today = new Date().toISOString().split('T')[0];
   const activeBookings = bookings.filter(b => b.date >= today);
+  
+  // Show only current user's bookings in the "Upcoming Bookings" section
+  const myActiveBookings = activeBookings.filter(b => b.userName === (user?.user_metadata?.user_name || user?.email));
 
   const spot84Bookings = activeBookings.filter(b => b.spotNumber === 84);
   const spot85Bookings = activeBookings.filter(b => b.spotNumber === 85);
@@ -190,15 +193,15 @@ const Index = () => {
               </div>
             </section>
 
-            {/* All Bookings Section */}
+            {/* User's Bookings Section */}
             <section className="scale-in">
               <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-2">
                 <div className="h-1 w-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full"></div>
-                Upcoming Bookings
+                My Upcoming Bookings
               </h2>
-              {activeBookings.length > 0 ? (
+              {myActiveBookings.length > 0 ? (
                 <div className="space-y-3">
-                  {activeBookings
+                  {myActiveBookings
                     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                     .map((booking, index) => (
                       <div
