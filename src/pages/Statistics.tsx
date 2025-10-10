@@ -24,21 +24,23 @@ const Statistics = () => {
 
   useEffect(() => {
     fetchBookings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchBookings = async () => {
     try {
-      if (!user) return;
-
       // Fetch ALL bookings from all users for statistics
+      // No user check needed - statistics should always load
       const { data, error } = await supabase
         .from('bookings')
         .select('*')
         .order('date', { ascending: true });
 
-      if (error) throw error;
-      setBookings(data || []);
+      if (error) {
+        console.error('Error fetching bookings:', error);
+        toast.error('Failed to load statistics');
+      } else {
+        setBookings(data || []);
+      }
     } catch (error) {
       console.error('Error fetching bookings:', error);
       toast.error('Failed to load statistics');

@@ -207,23 +207,39 @@ const Index = () => {
                     .map((booking, index) => {
                       // Check if booking is today
                       const isToday = booking.date === today;
-                      // Determine color based on vehicle type
-                      const vehicleColor = booking.vehicleType === "car" 
-                        ? "bg-blue-500/10 border-blue-500/30" 
-                        : "bg-orange-500/10 border-orange-500/30";
-                      const todayHighlight = isToday 
-                        ? "ring-2 ring-primary/50 shadow-lg" 
+                      
+                      // COLOR SCHEME:
+                      // Blue = Future bookings (not today)
+                      // Orange = Today's bookings
+                      const cardColor = isToday
+                        ? "bg-orange-500/10 border-orange-500/30" 
+                        : "bg-blue-500/10 border-blue-500/30";
+                      
+                      const dateBadgeColor = isToday
+                        ? "bg-orange-500/20"
+                        : "bg-blue-500/20";
+                      
+                      const dateTextColor = isToday
+                        ? "text-orange-600"
+                        : "text-blue-600";
+                      
+                      const durationBadgeColor = isToday
+                        ? "bg-orange-500"
+                        : "bg-blue-500";
+                      
+                      const todayRing = isToday 
+                        ? "ring-2 ring-orange-500/50 shadow-lg" 
                         : "";
                       
                       return (
                         <div
                           key={booking.id}
-                          className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 ${vehicleColor} border rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-scale-in ${todayHighlight}`}
+                          className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 ${cardColor} border rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-scale-in ${todayRing}`}
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
                           <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-0">
-                            <div className={`text-center min-w-[50px] sm:min-w-[60px] ${booking.vehicleType === "car" ? "bg-blue-500/20" : "bg-orange-500/20"} rounded-lg p-2 ${isToday ? "ring-2 ring-primary" : ""}`}>
-                              <div className={`text-xl sm:text-2xl font-bold ${booking.vehicleType === "car" ? "text-blue-600" : "text-orange-600"}`}>
+                            <div className={`text-center min-w-[50px] sm:min-w-[60px] ${dateBadgeColor} rounded-lg p-2 ${isToday ? "ring-2 ring-orange-500" : ""}`}>
+                              <div className={`text-xl sm:text-2xl font-bold ${dateTextColor}`}>
                                 {new Date(booking.date).getDate()}
                               </div>
                               <div className="text-xs text-muted-foreground uppercase">
@@ -233,19 +249,19 @@ const Index = () => {
                             <div className="flex-1 min-w-0">
                               <div className="font-semibold truncate flex items-center gap-2">
                                 {booking.userName}
-                                {isToday && <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">Today</span>}
+                                {isToday && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">Today</span>}
                               </div>
                               <div className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
                                 <span>Spot {booking.spotNumber}</span>
                                 <span>•</span>
-                                <span className={booking.vehicleType === "car" ? "text-blue-600 font-medium" : "text-orange-600 font-medium"}>
+                                <span className={isToday ? "text-orange-600 font-medium" : "text-blue-600 font-medium"}>
                                   {booking.vehicleType === "car" ? "🚗 Car" : "🏍️ Motorcycle"}
                                 </span>
                               </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-2 sm:gap-3 justify-between sm:justify-end">
-                            <div className={`text-xs sm:text-sm font-medium px-3 py-1.5 ${booking.vehicleType === "car" ? "bg-blue-500" : "bg-orange-500"} text-white rounded-full shadow-sm`}>
+                            <div className={`text-xs sm:text-sm font-medium px-3 py-1.5 ${durationBadgeColor} text-white rounded-full shadow-sm`}>
                               {booking.duration === "full" ? "All Day" : 
                                booking.duration === "morning" ? "Morning" : "Afternoon"}
                             </div>
