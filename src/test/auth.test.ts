@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { supabase } from '../integrations/supabase/client';
+import type { User, Session, AuthError } from '@supabase/supabase-js';
 
 // Mock Supabase client
 vi.mock('../integrations/supabase/client', () => ({
@@ -72,7 +73,7 @@ describe('Authentication Service', () => {
 
     it('should handle missing BASE_URL gracefully', () => {
       const origin = 'http://localhost:8080';
-      const baseUrl = undefined || '/';
+      const baseUrl = '/'; // Default when BASE_URL is undefined
       const redirectUrl = `${origin}${baseUrl}auth`.replace(/([^:]\/)\/+/g, "$1");
       
       expect(redirectUrl).toBe('http://localhost:8080/auth');
@@ -100,7 +101,7 @@ describe('Authentication Service', () => {
 
       vi.mocked(supabase.auth.resetPasswordForEmail).mockResolvedValue({
         data: {},
-        error: error as any,
+        error: error as unknown as null,
       });
 
       const result = await supabase.auth.resetPasswordForEmail(email, {
@@ -147,8 +148,8 @@ describe('Authentication Service', () => {
 
       vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({
         data: {
-          user: { id: '123', email: credentials.email } as any,
-          session: { access_token: 'token' } as any,
+          user: { id: '123', email: credentials.email } as unknown as User,
+          session: { access_token: 'token' } as unknown as Session,
         },
         error: null,
       });
@@ -167,7 +168,7 @@ describe('Authentication Service', () => {
 
       vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({
         data: { user: null, session: null },
-        error: new Error('Invalid login credentials') as any,
+        error: new Error('Invalid login credentials') as unknown as AuthError,
       });
 
       const result = await supabase.auth.signInWithPassword(credentials);
@@ -191,8 +192,8 @@ describe('Authentication Service', () => {
 
       vi.mocked(supabase.auth.signUp).mockResolvedValue({
         data: {
-          user: { id: '456', email: userData.email } as any,
-          session: { access_token: 'token' } as any,
+          user: { id: '456', email: userData.email } as unknown as User,
+          session: { access_token: 'token' } as unknown as Session,
         },
         error: null,
       });
@@ -211,7 +212,7 @@ describe('Authentication Service', () => {
 
       vi.mocked(supabase.auth.signUp).mockResolvedValue({
         data: { user: null, session: null },
-        error: new Error('User already registered') as any,
+        error: new Error('User already registered') as unknown as AuthError,
       });
 
       const result = await supabase.auth.signUp(userData);
@@ -226,7 +227,7 @@ describe('Authentication Service', () => {
       const newPassword = 'NewSecurePassword123';
 
       vi.mocked(supabase.auth.updateUser).mockResolvedValue({
-        data: { user: { id: '123' } as any },
+        data: { user: { id: '123' } as unknown as User },
         error: null,
       });
 
@@ -241,7 +242,7 @@ describe('Authentication Service', () => {
     it('should handle password update errors', async () => {
       vi.mocked(supabase.auth.updateUser).mockResolvedValue({
         data: { user: null },
-        error: new Error('Password update failed') as any,
+        error: new Error('Password update failed') as unknown as AuthError,
       });
 
       const result = await supabase.auth.updateUser({ password: 'NewPassword' });

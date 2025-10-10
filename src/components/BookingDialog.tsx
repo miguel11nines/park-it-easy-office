@@ -159,7 +159,7 @@ export const BookingDialog = ({ open, onOpenChange, spotNumber, existingBookings
 
           <div className="space-y-2">
             <Label>Duration</Label>
-            <RadioGroup value={duration} onValueChange={(v) => setDuration(v as any)}>
+            <RadioGroup value={duration} onValueChange={(v) => setDuration(v as "morning" | "afternoon" | "full")}>
               <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted transition-smooth cursor-pointer">
                 <RadioGroupItem value="full" id="full" />
                 <Label htmlFor="full" className="cursor-pointer flex-1">Full Day</Label>

@@ -1,6 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { supabase } from '@/integrations/supabase/client';
 
+type MockBooking = {
+  id: string;
+  date?: string;
+  vehicle_type?: string;
+  duration?: string;
+  spot_number?: number;
+};
+
 // Mock Supabase client
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -42,6 +50,7 @@ describe('Statistics Functionality', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (supabase.from as any).mockReturnValue({
         select: selectMock,
         order: orderMock,
@@ -75,15 +84,15 @@ describe('Statistics Functionality', () => {
     });
 
     it('should calculate car vs motorcycle distribution', () => {
-      const bookings = [
+      const bookings: MockBooking[] = [
         { id: '1', vehicle_type: 'car' },
         { id: '2', vehicle_type: 'motorcycle' },
         { id: '3', vehicle_type: 'motorcycle' },
         { id: '4', vehicle_type: 'car' },
       ];
 
-      const carCount = bookings.filter((b: any) => b.vehicle_type === 'car').length;
-      const motorcycleCount = bookings.filter((b: any) => b.vehicle_type === 'motorcycle').length;
+      const carCount = bookings.filter((b: MockBooking) => b.vehicle_type === 'car').length;
+      const motorcycleCount = bookings.filter((b: MockBooking) => b.vehicle_type === 'motorcycle').length;
 
       expect(carCount).toBe(2);
       expect(motorcycleCount).toBe(2);
@@ -98,8 +107,8 @@ describe('Statistics Functionality', () => {
         { id: '4', spot_number: 84 },
       ];
 
-      const spot84Count = bookings.filter((b: any) => b.spot_number === 84).length;
-      const spot85Count = bookings.filter((b: any) => b.spot_number === 85).length;
+      const spot84Count = bookings.filter((b: MockBooking) => b.spot_number === 84).length;
+      const spot85Count = bookings.filter((b: MockBooking) => b.spot_number === 85).length;
       const mostPopular = spot84Count >= spot85Count ? 84 : 85;
 
       expect(mostPopular).toBe(84);
@@ -118,10 +127,10 @@ describe('Statistics Functionality', () => {
 
       // Full day counts for both morning and afternoon
       const morningCount = bookings.filter(
-        (b: any) => b.duration === 'morning' || b.duration === 'full'
+        (b: MockBooking) => b.duration === 'morning' || b.duration === 'full'
       ).length;
       const afternoonCount = bookings.filter(
-        (b: any) => b.duration === 'afternoon' || b.duration === 'full'
+        (b: MockBooking) => b.duration === 'afternoon' || b.duration === 'full'
       ).length;
 
       expect(morningCount).toBe(4); // 2 morning + 2 full
@@ -137,8 +146,8 @@ describe('Statistics Functionality', () => {
       ];
 
       const filterByDateRange = (start: Date, end: Date) => {
-        return bookings.filter((b: any) => {
-          const bookingDate = new Date(b.date);
+        return bookings.filter((b: MockBooking) => {
+          const bookingDate = new Date(b.date || '');
           return bookingDate >= start && bookingDate <= end;
         });
       };
@@ -152,11 +161,11 @@ describe('Statistics Functionality', () => {
     });
 
     it('should handle empty bookings array', () => {
-      const bookings: any[] = [];
+      const bookings: MockBooking[] = [];
 
       const total = bookings.length;
-      const carCount = bookings.filter((b: any) => b.vehicle_type === 'car').length;
-      const motorcycleCount = bookings.filter((b: any) => b.vehicle_type === 'motorcycle').length;
+      const carCount = bookings.filter((b: MockBooking) => b.vehicle_type === 'car').length;
+      const motorcycleCount = bookings.filter((b: MockBooking) => b.vehicle_type === 'motorcycle').length;
 
       expect(total).toBe(0);
       expect(carCount).toBe(0);
@@ -176,26 +185,26 @@ describe('Statistics Functionality', () => {
 
   describe('Spot Usage Statistics', () => {
     it('should count bookings per spot', () => {
-      const bookings = [
+      const bookings: MockBooking[] = [
         { id: '1', spot_number: 84 },
         { id: '2', spot_number: 84 },
         { id: '3', spot_number: 85 },
       ];
 
-      const spot84Usage = bookings.filter((b: any) => b.spot_number === 84).length;
-      const spot85Usage = bookings.filter((b: any) => b.spot_number === 85).length;
+      const spot84Usage = bookings.filter((b: MockBooking) => b.spot_number === 84).length;
+      const spot85Usage = bookings.filter((b: MockBooking) => b.spot_number === 85).length;
 
       expect(spot84Usage).toBe(2);
       expect(spot85Usage).toBe(1);
     });
 
     it('should handle spots with no bookings', () => {
-      const bookings = [
+      const bookings: MockBooking[] = [
         { id: '1', spot_number: 84 },
       ];
 
-      const spot84Usage = bookings.filter((b: any) => b.spot_number === 84).length;
-      const spot85Usage = bookings.filter((b: any) => b.spot_number === 85).length;
+      const spot84Usage = bookings.filter((b: MockBooking) => b.spot_number === 84).length;
+      const spot85Usage = bookings.filter((b: MockBooking) => b.spot_number === 85).length;
 
       expect(spot84Usage).toBe(1);
       expect(spot85Usage).toBe(0);

@@ -193,7 +193,7 @@ describe('Booking Service', () => {
     });
 
     it('should show "Available" when no bookings exist', () => {
-      const bookings: any[] = [];
+      const bookings: unknown[] = [];
       const status = bookings.length === 0 ? 'available' : 'partial';
 
       expect(status).toBe('available');

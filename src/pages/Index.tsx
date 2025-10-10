@@ -31,6 +31,7 @@ const Index = () => {
     if (user) {
       fetchBookings();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchBookings = async () => {
