@@ -37,7 +37,17 @@ export const ParkingSpotCard = ({ spotNumber, currentBookings, onBook }: Parking
     const hasCarAfternoon = cars.some(b => b.duration === "afternoon");
     const carsFull = hasCarFullDay || (hasCarMorning && hasCarAfternoon);
     
+    // If both car and motorcycle spots are full, it's completely full
     if (motorcyclesFull && carsFull) return "full";
+    
+    // If car is booked for full day or both time slots, consider it fully booked
+    // (even if motorcycles can still park)
+    if (carsFull) return "full";
+    
+    // If motorcycles are at capacity but cars can still park
+    if (motorcyclesFull) return "partial";
+    
+    // If there are some bookings but space available
     return "partial";
   };
 
