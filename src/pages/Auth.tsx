@@ -181,8 +181,12 @@ export default function Auth() {
     try {
       emailSchema.parse(resetEmail);
 
+      // Construct the correct redirect URL
+      const baseUrl = import.meta.env.BASE_URL || '/';
+      const redirectUrl = `${window.location.origin}${baseUrl}auth`.replace(/([^:]\/)\/+/g, "$1");
+      
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}auth`,
+        redirectTo: redirectUrl,
       });
 
       if (error) {
