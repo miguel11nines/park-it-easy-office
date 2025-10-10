@@ -72,21 +72,31 @@ export const ParkingSpotCard = ({ spotNumber, currentBookings, onBook }: Parking
   };
 
   return (
-    <Card className={cn("transition-all duration-300 hover:shadow-xl hover:-translate-y-1 animate-scale-in", statusConfig[status].cardClass)}>
+    <Card className={cn(
+      "glass-card transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 scale-in border-2",
+      status === "available" && "border-green-200 hover:border-green-300",
+      status === "partial" && "border-blue-200 hover:border-blue-300",
+      status === "full" && "border-red-200 hover:border-red-300"
+    )}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2">
-          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
             <div className="flex gap-1">
-              <Car className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <Bike className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <Car className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+              <Bike className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
             </div>
             <span className="truncate">Parking Spot {spotNumber}</span>
           </CardTitle>
-          <Badge className={cn("whitespace-nowrap text-xs", statusConfig[status].badgeClass)}>
+          <Badge className={cn(
+            "whitespace-nowrap text-xs font-medium backdrop-blur-sm",
+            status === "available" && "bg-green-500/90 text-white shadow-lg shadow-green-500/30",
+            status === "partial" && "bg-blue-500/90 text-white shadow-lg shadow-blue-500/30",
+            status === "full" && "bg-red-500/90 text-white shadow-lg shadow-red-500/30"
+          )}>
             {statusConfig[status].badge}
           </Badge>
         </div>
-        <CardDescription className="text-xs sm:text-sm">
+        <CardDescription className="text-xs sm:text-sm font-medium text-muted-foreground">
           Cars & Motorcycles (Max 4 motorcycles)
         </CardDescription>
       </CardHeader>
@@ -123,7 +133,12 @@ export const ParkingSpotCard = ({ spotNumber, currentBookings, onBook }: Parking
         )}
         <Button 
           onClick={onBook} 
-          className="w-full bg-gradient-primary shadow-md hover:shadow-lg transition-all hover:scale-105 text-sm sm:text-base"
+          className={cn(
+            "w-full transition-all hover:scale-105 text-sm sm:text-base font-semibold shadow-lg",
+            status === "full" 
+              ? "bg-gray-400 hover:bg-gray-400 cursor-not-allowed" 
+              : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-blue-500/50"
+          )}
           disabled={status === "full"}
         >
           {status === "full" ? "Fully Booked" : "Book This Spot"}

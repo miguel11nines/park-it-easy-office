@@ -123,13 +123,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section with improved gradient and mobile padding */}
-      <div className="bg-gradient-hero text-primary-foreground py-8 md:py-12 px-4 shadow-lg">
-        <div className="container mx-auto max-w-6xl">
+      {/* Hero Section with liquid glass effect */}
+      <div className="liquid-gradient text-white py-8 md:py-12 px-4 shadow-xl relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+        <div className="container mx-auto max-w-6xl relative z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="animate-fade-in flex-1">
-              <h1 className="text-3xl md:text-5xl font-bold mb-2 md:mb-4">Parking at Work</h1>
-              <p className="text-base md:text-xl opacity-90">
+              <h1 className="text-3xl md:text-5xl font-bold mb-2 md:mb-4 tracking-tight">Parking at Work</h1>
+              <p className="text-base md:text-xl opacity-90 font-light">
                 Easy parking spot management for our team
               </p>
               {user && (
@@ -142,7 +143,7 @@ const Index = () => {
             <div className="flex gap-2 self-start md:self-auto">
               <Button
                 onClick={() => navigate('/statistics')}
-                className="bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-sm transition-all hover:scale-105"
+                className="glass-button text-white border-white/30 transition-all hover:scale-105 shadow-lg"
                 size="lg"
               >
                 <BarChart3 className="h-5 w-5 mr-2" />
@@ -151,7 +152,7 @@ const Index = () => {
               <Button
                 onClick={signOut}
                 variant="outline"
-                className="bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-sm transition-all hover:scale-105"
+                className="glass-button text-white border-white/30 transition-all hover:scale-105 shadow-lg"
                 size="lg"
               >
                 <LogOut className="h-5 w-5" />
@@ -169,10 +170,10 @@ const Index = () => {
           </div>
         ) : (
           <>
-            {/* Parking Spots Section with improved cards */}
-            <section className="animate-fade-in">
+            {/* Parking Spots Section with glass cards */}
+            <section className="scale-in">
               <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-2">
-                <div className="h-1 w-8 bg-gradient-primary rounded"></div>
+                <div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
                 Available Parking Spots
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -189,10 +190,10 @@ const Index = () => {
               </div>
             </section>
 
-            {/* All Bookings Section with improved mobile layout */}
-            <section className="animate-fade-in">
+            {/* All Bookings Section */}
+            <section className="scale-in">
               <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-2">
-                <div className="h-1 w-8 bg-gradient-success rounded"></div>
+                <div className="h-1 w-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full"></div>
                 Upcoming Bookings
               </h2>
               {activeBookings.length > 0 ? (
