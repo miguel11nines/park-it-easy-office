@@ -131,7 +131,7 @@ export default function Auth() {
           data: {
             user_name: signupName,
           },
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`,
         },
       });
 
@@ -182,7 +182,7 @@ export default function Auth() {
       emailSchema.parse(resetEmail);
 
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}${window.location.pathname}`,
+        redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}auth`,
       });
 
       if (error) {
