@@ -136,7 +136,7 @@ export const ParkingSpotCard = ({ spotNumber, currentBookings, onBook }: Parking
           className={cn(
             "w-full transition-all hover:scale-105 text-sm sm:text-base font-semibold shadow-lg",
             status === "full" 
-              ? "bg-gray-400 hover:bg-gray-400 cursor-not-allowed" 
+              ? "bg-orange-400 hover:bg-orange-400 cursor-not-allowed text-white shadow-orange-500/50" 
               : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-blue-500/50"
           )}
           disabled={status === "full"}
