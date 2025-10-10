@@ -76,7 +76,7 @@ export const ParkingSpotCard = ({ spotNumber, currentBookings, onBook }: Parking
       "glass-card transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 scale-in border-2",
       status === "available" && "border-green-200 hover:border-green-300",
       status === "partial" && "border-blue-200 hover:border-blue-300",
-      status === "full" && "border-red-200 hover:border-red-300"
+      status === "full" && "border-orange-200 hover:border-orange-300"
     )}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2">
@@ -91,7 +91,7 @@ export const ParkingSpotCard = ({ spotNumber, currentBookings, onBook }: Parking
             "whitespace-nowrap text-xs font-medium backdrop-blur-sm",
             status === "available" && "bg-green-500/90 text-white shadow-lg shadow-green-500/30",
             status === "partial" && "bg-blue-500/90 text-white shadow-lg shadow-blue-500/30",
-            status === "full" && "bg-red-500/90 text-white shadow-lg shadow-red-500/30"
+            status === "full" && "bg-orange-500/90 text-white shadow-lg shadow-orange-500/30"
           )}>
             {statusConfig[status].badge}
           </Badge>
