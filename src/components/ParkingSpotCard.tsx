@@ -74,9 +74,9 @@ export const ParkingSpotCard = ({ spotNumber, currentBookings, onBook }: Parking
   return (
     <Card className={cn(
       "glass-card transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 scale-in border-2",
-      status === "available" && "border-green-200 hover:border-green-300",
-      status === "partial" && "border-blue-200 hover:border-blue-300",
-      status === "full" && "border-orange-200 hover:border-orange-300"
+      status === "available" && "border-green-200 hover:border-green-300 bg-white",
+      status === "partial" && "border-blue-200 hover:border-blue-300 bg-white",
+      status === "full" && "border-orange-200 hover:border-orange-300 bg-orange-50"
     )}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2">
