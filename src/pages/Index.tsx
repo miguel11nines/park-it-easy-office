@@ -119,8 +119,8 @@ const Index = () => {
   const today = new Date().toISOString().split('T')[0];
   const activeBookings = bookings.filter(b => b.date >= today);
   
-  // Show only current user's bookings in the "Upcoming Bookings" section
-  const myActiveBookings = activeBookings.filter(b => b.userName === (user?.user_metadata?.user_name || user?.email));
+  // Show ALL upcoming bookings (not just current user's)
+  const allUpcomingBookings = activeBookings;
 
   const spot84Bookings = activeBookings.filter(b => b.spotNumber === 84);
   const spot85Bookings = activeBookings.filter(b => b.spotNumber === 85);
@@ -198,52 +198,71 @@ const Index = () => {
             <section className="scale-in">
               <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-2">
                 <div className="h-1 w-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full"></div>
-                My Upcoming Bookings
+                Upcoming Bookings
               </h2>
-              {myActiveBookings.length > 0 ? (
+              {allUpcomingBookings.length > 0 ? (
                 <div className="space-y-3">
-                  {myActiveBookings
+                  {allUpcomingBookings
                     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                    .map((booking, index) => (
-                      <div
-                        key={booking.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-card border rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-scale-in"
-                        style={{ animationDelay: `${index * 50}ms` }}
-                      >
-                        <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-0">
-                          <div className="text-center min-w-[50px] sm:min-w-[60px] bg-primary/10 rounded-lg p-2">
-                            <div className="text-xl sm:text-2xl font-bold text-primary">
-                              {new Date(booking.date).getDate()}
+                    .map((booking, index) => {
+                      // Check if booking is today
+                      const isToday = booking.date === today;
+                      // Determine color based on vehicle type
+                      const vehicleColor = booking.vehicleType === "car" 
+                        ? "bg-blue-500/10 border-blue-500/30" 
+                        : "bg-orange-500/10 border-orange-500/30";
+                      const todayHighlight = isToday 
+                        ? "ring-2 ring-primary/50 shadow-lg" 
+                        : "";
+                      
+                      return (
+                        <div
+                          key={booking.id}
+                          className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 ${vehicleColor} border rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-scale-in ${todayHighlight}`}
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-0">
+                            <div className={`text-center min-w-[50px] sm:min-w-[60px] ${booking.vehicleType === "car" ? "bg-blue-500/20" : "bg-orange-500/20"} rounded-lg p-2 ${isToday ? "ring-2 ring-primary" : ""}`}>
+                              <div className={`text-xl sm:text-2xl font-bold ${booking.vehicleType === "car" ? "text-blue-600" : "text-orange-600"}`}>
+                                {new Date(booking.date).getDate()}
+                              </div>
+                              <div className="text-xs text-muted-foreground uppercase">
+                                {new Date(booking.date).toLocaleDateString('en-US', { month: 'short' })}
+                              </div>
                             </div>
-                            <div className="text-xs text-muted-foreground uppercase">
-                              {new Date(booking.date).toLocaleDateString('en-US', { month: 'short' })}
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold truncate flex items-center gap-2">
+                                {booking.userName}
+                                {isToday && <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">Today</span>}
+                              </div>
+                              <div className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
+                                <span>Spot {booking.spotNumber}</span>
+                                <span>•</span>
+                                <span className={booking.vehicleType === "car" ? "text-blue-600 font-medium" : "text-orange-600 font-medium"}>
+                                  {booking.vehicleType === "car" ? "🚗 Car" : "🏍️ Motorcycle"}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold truncate">{booking.userName}</div>
-                            <div className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
-                              <span>Spot {booking.spotNumber}</span>
-                              <span>•</span>
-                              <span>{booking.vehicleType === "car" ? "🚗 Car" : "🏍️ Motorcycle"}</span>
+                          <div className="flex items-center gap-2 sm:gap-3 justify-between sm:justify-end">
+                            <div className={`text-xs sm:text-sm font-medium px-3 py-1.5 ${booking.vehicleType === "car" ? "bg-blue-500" : "bg-orange-500"} text-white rounded-full shadow-sm`}>
+                              {booking.duration === "full" ? "All Day" : 
+                               booking.duration === "morning" ? "Morning" : "Afternoon"}
                             </div>
+                            {booking.userName === (user?.user_metadata?.user_name || user?.email) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUnbook(booking.id)}
+                                className="text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all"
+                              >
+                                Unbook
+                              </Button>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 sm:gap-3 justify-between sm:justify-end">
-                          <div className="text-xs sm:text-sm font-medium px-3 py-1.5 bg-gradient-primary text-white rounded-full shadow-sm">
-                            {booking.duration === "full" ? "All Day" : 
-                             booking.duration === "morning" ? "Morning" : "Afternoon"}
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleUnbook(booking.id)}
-                            className="text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all"
-                          >
-                            Unbook
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                 </div>
               ) : (
                 <div className="text-center py-12 bg-card rounded-xl border border-dashed">
