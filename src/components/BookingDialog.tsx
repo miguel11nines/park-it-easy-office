@@ -10,15 +10,8 @@ import { CalendarIcon, Car, Bike } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-interface Booking {
-  id: string;
-  date: string;
-  duration: "morning" | "afternoon" | "full";
-  vehicleType: "car" | "motorcycle";
-  userName: string;
-  spotNumber: number;
-}
+import type { Booking, Duration, VehicleType } from "@/types/booking";
+import { checkDurationOverlap, BOOKING_CONSTANTS } from "@/utils/bookingUtils";
 
 interface BookingDialogProps {
   open: boolean;
@@ -27,16 +20,16 @@ interface BookingDialogProps {
   existingBookings: Booking[];
   onConfirm: (booking: {
     date: string;
-    duration: "morning" | "afternoon" | "full";
-    vehicleType: "car" | "motorcycle";
+    duration: Duration;
+    vehicleType: VehicleType;
     spotNumber: number;
   }) => void;
 }
 
 export const BookingDialog = ({ open, onOpenChange, spotNumber, existingBookings, onConfirm }: BookingDialogProps) => {
   const [date, setDate] = useState<Date>();
-  const [duration, setDuration] = useState<"morning" | "afternoon" | "full">("full");
-  const [vehicleType, setVehicleType] = useState<"car" | "motorcycle">("car");
+  const [duration, setDuration] = useState<Duration>("full");
+  const [vehicleType, setVehicleType] = useState<VehicleType>("car");
 
   const handleSubmit = () => {
     if (!date) {
@@ -49,15 +42,9 @@ export const BookingDialog = ({ open, onOpenChange, spotNumber, existingBookings
       b => b.date === selectedDateStr && b.spotNumber === spotNumber
     );
 
-    // Overlap helper
-    const overlaps = (a: "morning" | "afternoon" | "full", b: "morning" | "afternoon" | "full") => {
-      if (a === "full" || b === "full") return true;
-      return a === b; // morning overlaps morning, afternoon overlaps afternoon
-    };
-
     // Validation for car booking: must not overlap with any car or motorcycle
     if (vehicleType === "car") {
-      const conflict = bookingsForDate.some(b => overlaps(duration, b.duration));
+      const conflict = bookingsForDate.some(b => checkDurationOverlap(duration, b.duration));
       if (conflict) {
         toast.error("This spot already has a booking at that time");
         return;
@@ -66,18 +53,18 @@ export const BookingDialog = ({ open, onOpenChange, spotNumber, existingBookings
 
     // Validation for motorcycle booking: must not overlap with cars and max 4 overlapping motorcycles
     if (vehicleType === "motorcycle") {
-      const carConflict = bookingsForDate.some(b => b.vehicleType === "car" && overlaps(duration, b.duration));
+      const carConflict = bookingsForDate.some(b => b.vehicleType === "car" && checkDurationOverlap(duration, b.duration));
       if (carConflict) {
         toast.error("A car is booked for that time on this spot");
         return;
       }
 
       const overlappingMotoCount = bookingsForDate.filter(
-        b => b.vehicleType === "motorcycle" && overlaps(duration, b.duration)
+        b => b.vehicleType === "motorcycle" && checkDurationOverlap(duration, b.duration)
       ).length;
 
-      if (overlappingMotoCount >= 4) {
-        toast.error("Maximum 4 motorcycles allowed at the same time on this spot");
+      if (overlappingMotoCount >= BOOKING_CONSTANTS.MAX_MOTORCYCLES) {
+        toast.error(`Maximum ${BOOKING_CONSTANTS.MAX_MOTORCYCLES} motorcycles allowed at the same time on this spot`);
         return;
       }
     }
@@ -139,7 +126,7 @@ export const BookingDialog = ({ open, onOpenChange, spotNumber, existingBookings
 
           <div className="space-y-2">
             <Label>Vehicle Type</Label>
-            <RadioGroup value={vehicleType} onValueChange={(v) => setVehicleType(v as "car" | "motorcycle")}>
+            <RadioGroup value={vehicleType} onValueChange={(v) => setVehicleType(v as VehicleType)}>
               <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted transition-smooth cursor-pointer">
                 <RadioGroupItem value="car" id="car" />
                 <Label htmlFor="car" className="flex items-center gap-2 cursor-pointer flex-1">
@@ -159,7 +146,7 @@ export const BookingDialog = ({ open, onOpenChange, spotNumber, existingBookings
 
           <div className="space-y-2">
             <Label>Duration</Label>
-            <RadioGroup value={duration} onValueChange={(v) => setDuration(v as "morning" | "afternoon" | "full")}>
+            <RadioGroup value={duration} onValueChange={(v) => setDuration(v as Duration)}>
               <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted transition-smooth cursor-pointer">
                 <RadioGroupItem value="full" id="full" />
                 <Label htmlFor="full" className="cursor-pointer flex-1">Full Day</Label>

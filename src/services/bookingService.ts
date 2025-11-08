@@ -1,34 +1,11 @@
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
+import type { Booking, CreateBookingData, BookingResult, Duration, VehicleType } from '@/types/booking';
+import { checkDurationOverlap, BOOKING_CONSTANTS } from '@/utils/bookingUtils';
 
-// Types
+// Validation Schemas
 export const durationSchema = z.enum(['morning', 'afternoon', 'full']);
 export const vehicleTypeSchema = z.enum(['car', 'motorcycle']);
-
-export type Duration = z.infer<typeof durationSchema>;
-export type VehicleType = z.infer<typeof vehicleTypeSchema>;
-
-export interface Booking {
-  id: string;
-  date: string;
-  duration: Duration;
-  vehicleType: VehicleType;
-  userName: string;
-  spotNumber: number;
-}
-
-export interface CreateBookingData {
-  date: string;
-  duration: Duration;
-  vehicleType: VehicleType;
-  spotNumber: number;
-}
-
-export interface BookingResult {
-  success: boolean;
-  error?: string;
-  data?: Booking;
-}
 
 // Validation Schema for database response
 const dbBookingSchema = z.object({
@@ -47,15 +24,11 @@ const dbBookingSchema = z.object({
  * Handles all booking-related operations with proper validation
  */
 export class BookingService {
-  private static readonly MAX_MOTORCYCLES = 4;
-  private static readonly VALID_SPOTS = [84, 85];
-
   /**
    * Check if two time durations overlap
    */
   private static overlaps(a: Duration, b: Duration): boolean {
-    if (a === 'full' || b === 'full') return true;
-    return a === b;
+    return checkDurationOverlap(a, b);
   }
 
   /**
@@ -68,10 +41,10 @@ export class BookingService {
     vehicleType: VehicleType
   ): Promise<{ valid: boolean; error?: string }> {
     // Validate spot number
-    if (!this.VALID_SPOTS.includes(spotNumber)) {
+    if (!BOOKING_CONSTANTS.VALID_SPOTS.includes(spotNumber)) {
       return {
         valid: false,
-        error: `Invalid spot number. Valid spots are: ${this.VALID_SPOTS.join(', ')}`,
+        error: `Invalid spot number. Valid spots are: ${BOOKING_CONSTANTS.VALID_SPOTS.join(', ')}`,
       };
     }
 
@@ -151,10 +124,10 @@ export class BookingService {
         b => b.vehicle_type === 'motorcycle' && this.overlaps(duration, b.duration)
       ).length;
 
-      if (motorcycleCount >= this.MAX_MOTORCYCLES) {
+      if (motorcycleCount >= BOOKING_CONSTANTS.MAX_MOTORCYCLES) {
         return {
           valid: false,
-          error: `Maximum ${this.MAX_MOTORCYCLES} motorcycles allowed at the same time`,
+          error: `Maximum ${BOOKING_CONSTANTS.MAX_MOTORCYCLES} motorcycles allowed at the same time`,
         };
       }
     }

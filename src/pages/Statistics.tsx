@@ -7,7 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
-interface Booking {
+// Database booking interface (matches database structure)
+interface DbBooking {
   id: string;
   date: string;
   duration: "morning" | "afternoon" | "full";
@@ -19,7 +20,7 @@ interface Booking {
 const Statistics = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<DbBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -77,11 +78,11 @@ const Statistics = () => {
   // Calculate occupation percentage
   // Each spot can have: 2 half-day slots for cars OR 4 motorcycles per day
   // Total capacity per day = 2 spots × 2 periods = 4 car slots (or more motorcycle capacity)
-  const calculateOccupation = (bookingsInRange: Booking[]) => {
+  const calculateOccupation = (bookingsInRange: DbBooking[]) => {
     if (bookingsInRange.length === 0) return 0;
     
     // Group by date
-    const dateGroups: { [key: string]: Booking[] } = {};
+    const dateGroups: { [key: string]: DbBooking[] } = {};
     bookingsInRange.forEach(b => {
       if (!dateGroups[b.date]) dateGroups[b.date] = [];
       dateGroups[b.date].push(b);

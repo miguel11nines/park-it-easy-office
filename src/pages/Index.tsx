@@ -8,15 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { BarChart3, Calendar, LogOut, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-
-interface Booking {
-  id: string;
-  date: string;
-  duration: "morning" | "afternoon" | "full";
-  vehicleType: "car" | "motorcycle";
-  userName: string;
-  spotNumber: number;
-}
+import type { Booking } from "@/types/booking";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -50,8 +42,8 @@ const Index = () => {
       const transformedBookings: Booking[] = (data || []).map((booking) => ({
         id: booking.id,
         date: booking.date,
-        duration: booking.duration as "morning" | "afternoon" | "full",
-        vehicleType: booking.vehicle_type as "car" | "motorcycle",
+        duration: booking.duration as Booking["duration"],
+        vehicleType: booking.vehicle_type as Booking["vehicleType"],
         userName: booking.user_name,
         spotNumber: booking.spot_number,
       }));

@@ -8,18 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { emailSchema, passwordSchema, nameSchema } from "@/services/authService";
 
 const ALLOWED_EMAIL_DOMAIN = "@lht.dlh.de";
-
-const emailSchema = z.string()
-  .email("Please enter a valid email address")
-  .max(255)
-  .refine((email) => email.endsWith(ALLOWED_EMAIL_DOMAIN), {
-    message: `Only ${ALLOWED_EMAIL_DOMAIN} email addresses are allowed`,
-  });
-
-const passwordSchema = z.string().min(6, "Password must be at least 6 characters").max(72);
-const nameSchema = z.string().trim().min(1, "Name is required").max(100);
 
 export default function Auth() {
   const navigate = useNavigate();
