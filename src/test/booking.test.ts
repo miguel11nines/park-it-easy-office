@@ -59,29 +59,7 @@ describe('Booking Service', () => {
         b => b.vehicle_type === 'car' && b.duration === newBooking.duration
       );
 
-      const motorcycleCount = existingBookings.filter(
-        b => b.vehicle_type === 'motorcycle' && b.duration === newBooking.duration
-      ).length;
-
       expect(carConflict).toBe(false);
-      expect(motorcycleCount).toBeLessThan(4);
-    });
-
-    it('should prevent 5th motorcycle booking', () => {
-      const existingBookings = Array.from({ length: 4 }, (_, i) => ({
-        id: `${i + 1}`,
-        spot_number: 84,
-        date: '2025-10-15',
-        duration: 'full',
-        vehicle_type: 'motorcycle',
-        user_name: `Biker ${i + 1}`,
-      }));
-
-      const motorcycleCount = existingBookings.filter(
-        b => b.vehicle_type === 'motorcycle' && b.duration === 'full'
-      ).length;
-
-      expect(motorcycleCount).toBeGreaterThanOrEqual(4);
     });
 
     it('should prevent motorcycle booking when car is booked', () => {
@@ -199,8 +177,8 @@ describe('Booking Service', () => {
       expect(status).toBe('available');
     });
 
-    it('should show "Partially Booked" when only motorcycles at capacity', () => {
-      const bookings = Array.from({ length: 4 }, (_, i) => ({
+    it('should show "Partially Booked" when only motorcycles booked', () => {
+      const bookings = Array.from({ length: 2 }, (_, i) => ({
         id: `${i + 1}`,
         date: '2025-10-10',
         duration: 'full' as const,
@@ -210,11 +188,11 @@ describe('Booking Service', () => {
       }));
 
       const motorcycles = bookings.filter(b => b.vehicleType === 'motorcycle');
-      const motorcyclesFull = motorcycles.length >= 4;
+      const hasmotorcycles = motorcycles.length > 0;
       const cars = bookings.filter(b => b.vehicleType === 'car');
       const carsFull = cars.some(b => b.duration === 'full');
 
-      const status = carsFull ? 'full' : (motorcyclesFull ? 'partial' : 'partial');
+      const status = carsFull ? 'full' : (hasmotorcycles ? 'partial' : 'available');
 
       expect(status).toBe('partial');
     });
@@ -267,6 +245,176 @@ describe('Booking Service', () => {
       
       // TODO: Add unique constraint: (spot_number, date, duration, vehicle_type)
       // where vehicle_type = 'car'
+    });
+  });
+
+  describe('One Booking Per Day Per User', () => {
+    it('should prevent user from booking two motorcycles on same day', () => {
+      const existingUserBookings = [
+        {
+          id: '1',
+          spot_number: 84,
+          date: '2025-11-10',
+          duration: 'full',
+          vehicle_type: 'motorcycle',
+          user_name: 'John Doe',
+        },
+      ];
+
+      const newBookingAttempt = {
+        spot_number: 85,
+        date: '2025-11-10',
+        duration: 'morning',
+        vehicle_type: 'motorcycle',
+        user_name: 'John Doe',
+      };
+
+      // Check if user already has any booking on this date
+      const userHasBooking = existingUserBookings.some(
+        b => b.user_name === newBookingAttempt.user_name && b.date === newBookingAttempt.date
+      );
+
+      expect(userHasBooking).toBe(true);
+    });
+
+    it('should prevent user from booking car and motorcycle on same day', () => {
+      const existingUserBookings = [
+        {
+          id: '1',
+          spot_number: 84,
+          date: '2025-11-10',
+          duration: 'morning',
+          vehicle_type: 'car',
+          user_name: 'Jane Smith',
+        },
+      ];
+
+      const newBookingAttempt = {
+        spot_number: 85,
+        date: '2025-11-10',
+        duration: 'afternoon',
+        vehicle_type: 'motorcycle',
+        user_name: 'Jane Smith',
+      };
+
+      // Check if user already has any booking on this date
+      const userHasBooking = existingUserBookings.some(
+        b => b.user_name === newBookingAttempt.user_name && b.date === newBookingAttempt.date
+      );
+
+      expect(userHasBooking).toBe(true);
+    });
+
+    it('should allow user to book on different days', () => {
+      const existingUserBookings = [
+        {
+          id: '1',
+          spot_number: 84,
+          date: '2025-11-10',
+          duration: 'full',
+          vehicle_type: 'car',
+          user_name: 'Bob Johnson',
+        },
+      ];
+
+      const newBookingAttempt = {
+        spot_number: 84,
+        date: '2025-11-11', // Different date
+        duration: 'full',
+        vehicle_type: 'car',
+        user_name: 'Bob Johnson',
+      };
+
+      // Check if user already has any booking on this date
+      const userHasBooking = existingUserBookings.some(
+        b => b.user_name === newBookingAttempt.user_name && b.date === newBookingAttempt.date
+      );
+
+      expect(userHasBooking).toBe(false);
+    });
+
+    it('should allow different users to book on same day', () => {
+      const existingUserBookings = [
+        {
+          id: '1',
+          spot_number: 84,
+          date: '2025-11-10',
+          duration: 'full',
+          vehicle_type: 'car',
+          user_name: 'Alice',
+        },
+      ];
+
+      const newBookingAttempt = {
+        spot_number: 85,
+        date: '2025-11-10',
+        duration: 'full',
+        vehicle_type: 'car',
+        user_name: 'Bob', // Different user
+      };
+
+      // Check if user already has any booking on this date
+      const userHasBooking = existingUserBookings.some(
+        b => b.user_name === newBookingAttempt.user_name && b.date === newBookingAttempt.date
+      );
+
+      expect(userHasBooking).toBe(false);
+    });
+
+    it('should detect existing booking regardless of spot number', () => {
+      const existingUserBookings = [
+        {
+          id: '1',
+          spot_number: 84,
+          date: '2025-11-10',
+          duration: 'morning',
+          vehicle_type: 'motorcycle',
+          user_name: 'Charlie',
+        },
+      ];
+
+      const newBookingAttempt = {
+        spot_number: 85, // Different spot
+        date: '2025-11-10', // Same date
+        duration: 'afternoon', // Different duration
+        vehicle_type: 'car', // Different vehicle
+        user_name: 'Charlie', // Same user
+      };
+
+      // Check if user already has any booking on this date
+      const userHasBooking = existingUserBookings.some(
+        b => b.user_name === newBookingAttempt.user_name && b.date === newBookingAttempt.date
+      );
+
+      expect(userHasBooking).toBe(true);
+    });
+
+    it('should detect existing booking regardless of duration', () => {
+      const existingUserBookings = [
+        {
+          id: '1',
+          spot_number: 84,
+          date: '2025-11-10',
+          duration: 'full',
+          vehicle_type: 'car',
+          user_name: 'David',
+        },
+      ];
+
+      const newBookingAttempt = {
+        spot_number: 84,
+        date: '2025-11-10',
+        duration: 'morning', // Different duration
+        vehicle_type: 'motorcycle',
+        user_name: 'David',
+      };
+
+      // Check if user already has any booking on this date
+      const userHasBooking = existingUserBookings.some(
+        b => b.user_name === newBookingAttempt.user_name && b.date === newBookingAttempt.date
+      );
+
+      expect(userHasBooking).toBe(true);
     });
   });
 });

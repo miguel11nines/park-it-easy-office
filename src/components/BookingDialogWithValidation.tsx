@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Booking {
   id: string;
@@ -38,6 +39,7 @@ export const BookingDialogWithValidation = ({
   spotNumber, 
   onConfirm 
 }: BookingDialogWithValidationProps) => {
+  const { user } = useAuth();
   const [date, setDate] = useState<Date>();
   const [duration, setDuration] = useState<"morning" | "afternoon" | "full">("full");
   const [vehicleType, setVehicleType] = useState<"car" | "motorcycle">("car");
@@ -49,10 +51,32 @@ export const BookingDialogWithValidation = ({
       return;
     }
 
+    if (!user) {
+      toast.error("You must be logged in to book");
+      return;
+    }
+
     setIsValidating(true);
     const selectedDateStr = format(date, "yyyy-MM-dd");
+    const userName = user.user_metadata?.user_name || user.email;
 
     try {
+      // First, check if user already has a booking on this date
+      const { data: userBookings, error: userError } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('user_name', userName)
+        .eq('date', selectedDateStr);
+
+      if (userError) throw userError;
+
+      if (userBookings && userBookings.length > 0) {
+        const existingBooking = userBookings[0];
+        toast.error(`You already have a booking on this date (Spot ${existingBooking.spot_number}, ${existingBooking.vehicle_type === 'car' ? '🚗 Car' : '🏍️ Motorcycle'})`);
+        setIsValidating(false);
+        return;
+      }
+
       // Fetch ALL bookings for this spot and date to validate conflicts
       const { data: existingBookings, error } = await supabase
         .from('bookings')
@@ -133,7 +157,7 @@ export const BookingDialogWithValidation = ({
         <DialogHeader>
           <DialogTitle>Book Parking Spot {spotNumber}</DialogTitle>
           <DialogDescription>
-            Fill in the details to reserve your parking spot
+            Fill in the details to reserve your parking spot. You can only have one booking per day.
           </DialogDescription>
         </DialogHeader>
         

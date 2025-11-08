@@ -7,6 +7,7 @@ type MockBooking = {
   vehicle_type?: string;
   duration?: string;
   spot_number?: number;
+  user_name?: string;
 };
 
 // Mock Supabase client
@@ -180,6 +181,99 @@ describe('Statistics Functionality', () => {
 
       expect(percentage).toBe(0);
       expect(isNaN(percentage)).toBe(false);
+    });
+  });
+
+  describe('Occupancy Calculation (2 spots per day)', () => {
+    it('should calculate 50% occupancy with 1 spot booked', () => {
+      const dayBookings = [
+        { id: '1', spot_number: 84, date: '2025-11-08' },
+      ];
+
+      const uniqueSpots = new Set(dayBookings.map((b: MockBooking) => b.spot_number));
+      const maxSpots = 2;
+      const occupancy = (uniqueSpots.size / maxSpots) * 100;
+
+      expect(occupancy).toBe(50);
+      expect(uniqueSpots.size).toBe(1);
+    });
+
+    it('should calculate 100% occupancy with both spots booked', () => {
+      const dayBookings = [
+        { id: '1', spot_number: 84, date: '2025-11-08' },
+        { id: '2', spot_number: 85, date: '2025-11-08' },
+      ];
+
+      const uniqueSpots = new Set(dayBookings.map((b: MockBooking) => b.spot_number));
+      const maxSpots = 2;
+      const occupancy = (uniqueSpots.size / maxSpots) * 100;
+
+      expect(occupancy).toBe(100);
+      expect(uniqueSpots.size).toBe(2);
+    });
+
+    it('should calculate 0% occupancy with no bookings', () => {
+      const dayBookings: MockBooking[] = [];
+
+      const uniqueSpots = new Set(dayBookings.map((b: MockBooking) => b.spot_number));
+      const maxSpots = 2;
+      const occupancy = uniqueSpots.size === 0 ? 0 : (uniqueSpots.size / maxSpots) * 100;
+
+      expect(occupancy).toBe(0);
+    });
+
+    it('should count unique spots only (multiple bookings per spot = same occupancy)', () => {
+      // Multiple bookings on spot 84 (different periods)
+      const dayBookings = [
+        { id: '1', spot_number: 84, date: '2025-11-08', duration: 'morning' },
+        { id: '2', spot_number: 84, date: '2025-11-08', duration: 'afternoon' },
+      ];
+
+      const uniqueSpots = new Set(dayBookings.map((b: MockBooking) => b.spot_number));
+      const maxSpots = 2;
+      const occupancy = (uniqueSpots.size / maxSpots) * 100;
+
+      // Still only 1 unique spot
+      expect(uniqueSpots.size).toBe(1);
+      expect(occupancy).toBe(50);
+    });
+  });
+
+  describe('User Statistics', () => {
+    it('should count unique users', () => {
+      const bookings: MockBooking[] = [
+        { id: '1', user_name: 'Alice' },
+        { id: '2', user_name: 'Bob' },
+        { id: '3', user_name: 'Alice' },
+        { id: '4', user_name: 'Charlie' },
+      ];
+
+      const uniqueUsers = [...new Set(bookings.map(b => b.user_name))];
+
+      expect(uniqueUsers.length).toBe(3);
+      expect(uniqueUsers).toContain('Alice');
+      expect(uniqueUsers).toContain('Bob');
+      expect(uniqueUsers).toContain('Charlie');
+    });
+
+    it('should rank users by booking count', () => {
+      const bookings: MockBooking[] = [
+        { id: '1', user_name: 'Alice' },
+        { id: '2', user_name: 'Bob' },
+        { id: '3', user_name: 'Alice' },
+        { id: '4', user_name: 'Charlie' },
+        { id: '5', user_name: 'Alice' },
+      ];
+
+      const uniqueUsers = [...new Set(bookings.map(b => b.user_name))];
+      const userCounts = uniqueUsers.map(userName => ({
+        name: userName,
+        count: bookings.filter(b => b.user_name === userName).length,
+      })).sort((a, b) => b.count - a.count);
+
+      expect(userCounts[0].name).toBe('Alice');
+      expect(userCounts[0].count).toBe(3);
+      expect(userCounts[1].count).toBe(1);
     });
   });
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, TrendingUp, Calendar, Car, Bike, Percent, Clock } from "lucide-react";
+import { ArrowLeft, TrendingUp, Calendar, Car, Bike, Percent, Clock, BarChart3, Users, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -70,13 +70,24 @@ const Statistics = () => {
   const thisMonthBookings = filterByDateRange(thisMonthStart, thisMonthEnd);
   const activeBookings = bookings.filter(b => new Date(b.date) >= new Date(new Date().setHours(0, 0, 0, 0)));
 
+  // Get unique users
+  const uniqueUsers = [...new Set(bookings.map(b => b.user_name))];
+  
+  // User booking counts
+  const userBookingCounts = uniqueUsers.map(userName => ({
+    name: userName,
+    count: bookings.filter(b => b.user_name === userName).length,
+    thisWeek: thisWeekBookings.filter(b => b.user_name === userName).length,
+    thisMonth: thisMonthBookings.filter(b => b.user_name === userName).length,
+  })).sort((a, b) => b.count - a.count);
+
   const carBookings = bookings.filter(b => b.vehicle_type === "car").length;
   const motorcycleBookings = bookings.filter(b => b.vehicle_type === "motorcycle").length;
   const totalBookings = bookings.length;
 
   // Calculate occupation percentage
-  // Each spot can have: 2 half-day slots for cars OR 4 motorcycles per day
-  // Total capacity per day = 2 spots × 2 periods = 4 car slots (or more motorcycle capacity)
+  // Each spot can have one booking per day (car or motorcycle)
+  // Max capacity: 2 bookings per day (2 spots)
   const calculateOccupation = (bookingsInRange: Booking[]) => {
     if (bookingsInRange.length === 0) return 0;
     
@@ -88,39 +99,45 @@ const Statistics = () => {
     });
 
     const occupations = Object.values(dateGroups).map(dayBookings => {
-      let totalCapacity = 0;
-      let usedCapacity = 0;
-
-      // Calculate for each spot
-      [84, 85].forEach(spot => {
-        const spotBookings = dayBookings.filter(b => b.spot_number === spot);
-        
-        // Check morning capacity
-        const morningBookings = spotBookings.filter(b => b.duration === "morning" || b.duration === "full");
-        const morningCars = morningBookings.filter(b => b.vehicle_type === "car").length;
-        const morningMotos = morningBookings.filter(b => b.vehicle_type === "motorcycle").length;
-        
-        if (morningCars > 0 || morningMotos > 0) {
-          totalCapacity += morningCars > 0 ? 1 : 4; // 1 car or 4 motorcycles
-          usedCapacity += morningCars > 0 ? 1 : morningMotos;
-        }
-
-        // Check afternoon capacity
-        const afternoonBookings = spotBookings.filter(b => b.duration === "afternoon" || b.duration === "full");
-        const afternoonCars = afternoonBookings.filter(b => b.vehicle_type === "car").length;
-        const afternoonMotos = afternoonBookings.filter(b => b.vehicle_type === "motorcycle").length;
-        
-        if (afternoonCars > 0 || afternoonMotos > 0) {
-          totalCapacity += afternoonCars > 0 ? 1 : 4;
-          usedCapacity += afternoonCars > 0 ? 1 : afternoonMotos;
-        }
-      });
-
-      return totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0;
+      // Count unique spots per day (max 2: spot 84 and spot 85)
+      const uniqueSpots = new Set(dayBookings.map(b => b.spot_number));
+      const maxSpots = 2;
+      const usedSpots = uniqueSpots.size;
+      return (usedSpots / maxSpots) * 100;
     });
 
     return occupations.reduce((a, b) => a + b, 0) / occupations.length;
   };
+
+  // Calculate daily occupancy for the week
+  const getDailyOccupancy = (startDate: Date, days: number) => {
+    const dailyData = [];
+    for (let i = 0; i < days; i++) {
+      const currentDate = new Date(startDate);
+      currentDate.setDate(startDate.getDate() + i);
+      const dateStr = currentDate.toISOString().split('T')[0];
+      const dayBookings = bookings.filter(b => b.date === dateStr);
+      // Count unique spots (max 2 per day)
+      const uniqueSpots = new Set(dayBookings.map(b => b.spot_number));
+      const maxSpots = 2;
+      const occupancy = (uniqueSpots.size / maxSpots) * 100;
+      
+      dailyData.push({
+        date: currentDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+        dayOfMonth: currentDate.getDate(),
+        dayOfWeek: currentDate.getDay(), // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+        bookings: uniqueSpots.size,
+        occupancy: Math.min(occupancy, 100),
+        maxSlots: maxSpots,
+      });
+    }
+    return dailyData;
+  };
+
+  const weeklyOccupancy = getDailyOccupancy(thisWeekStart, 7);
+  // Get monthly occupancy only for weekdays (Monday-Friday)
+  const allMonthlyDays = getDailyOccupancy(thisMonthStart, new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate());
+  const monthlyOccupancy = allMonthlyDays.filter(day => day.dayOfWeek >= 1 && day.dayOfWeek <= 5); // Monday=1, Friday=5
 
   const weekOccupation = calculateOccupation(thisWeekBookings);
   const monthOccupation = calculateOccupation(thisMonthBookings);
@@ -144,25 +161,25 @@ const Statistics = () => {
       description: "All time"
     },
     {
+      title: "Active Users",
+      value: uniqueUsers.length,
+      icon: Users,
+      gradient: "bg-gradient-success",
+      description: "Team members"
+    },
+    {
       title: "This Week",
       value: thisWeekBookings.length,
       icon: TrendingUp,
-      gradient: "bg-gradient-success",
-      description: `${weekOccupation.toFixed(1)}% occupation`
+      gradient: "bg-gradient-accent",
+      description: `${weekOccupation.toFixed(1)}% avg occupancy`
     },
     {
       title: "This Month",
       value: thisMonthBookings.length,
-      icon: TrendingUp,
-      gradient: "bg-gradient-accent",
-      description: `${monthOccupation.toFixed(1)}% occupation`
-    },
-    {
-      title: "Week Occupation",
-      value: `${weekOccupation.toFixed(1)}%`,
-      icon: Percent,
+      icon: BarChart3,
       gradient: "bg-gradient-primary",
-      description: "Average capacity used"
+      description: `${monthOccupation.toFixed(1)}% avg occupancy`
     },
     {
       title: "Car Bookings",
@@ -181,7 +198,7 @@ const Statistics = () => {
     {
       title: "Most Popular Spot",
       value: `Spot ${mostPopularSpot}`,
-      icon: TrendingUp,
+      icon: Activity,
       gradient: "bg-gradient-primary",
       description: `${Math.max(spot84Count, spot85Count)} bookings`
     },
@@ -335,6 +352,190 @@ const Statistics = () => {
                   </CardContent>
                 </Card>
               </div>
+            </section>
+
+            {/* Weekly Occupancy Details */}
+            <section className="animate-fade-in">
+              <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-2">
+                <div className="h-1 w-8 bg-gradient-accent rounded"></div>
+                Weekly Occupancy
+              </h2>
+              <Card className="transition-all hover:shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-base sm:text-lg">This Week ({thisWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {thisWeekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})</CardTitle>
+                  <CardDescription>Daily capacity usage • Max: 2 spots/day (Spot 84 & Spot 85)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {weeklyOccupancy.map((day, index) => (
+                      <div key={index}>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-xs sm:text-sm font-medium">{day.date}</span>
+                          <span className="text-xs sm:text-sm font-bold">{day.bookings}/{day.maxSlots} spots ({day.occupancy.toFixed(0)}%)</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2.5">
+                          <div
+                            className={`h-2.5 rounded-full transition-all duration-500 ${
+                              day.occupancy >= 100 ? 'bg-red-500' : 
+                              day.occupancy >= 50 ? 'bg-orange-500' : 
+                              day.occupancy > 0 ? 'bg-green-500' :
+                              'bg-gray-300'
+                            }`}
+                            style={{ width: `${day.occupancy}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* Monthly Occupancy Overview */}
+            <section className="animate-fade-in">
+              <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-2">
+                <div className="h-1 w-8 bg-gradient-primary rounded"></div>
+                Monthly Occupancy
+              </h2>
+              <Card className="transition-all hover:shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-base sm:text-lg">
+                    {thisMonthStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </CardTitle>
+                  <CardDescription>
+                    {thisMonthBookings.length} bookings • Average {monthOccupation.toFixed(1)}% occupancy • Weekdays only (Mon-Fri)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {/* Calendar Header - Day Names */}
+                  <div className="grid grid-cols-5 gap-2 mb-3">
+                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((dayName) => (
+                      <div key={dayName} className="text-center font-semibold text-sm text-muted-foreground py-2 border-b-2">
+                        {dayName}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Calendar Grid - Group by weeks */}
+                  <div className="space-y-2">
+                    {(() => {
+                      // Group days by weeks (Monday-Friday)
+                      const weeks: typeof monthlyOccupancy[] = [];
+                      let currentWeek: typeof monthlyOccupancy = [];
+                      
+                      monthlyOccupancy.forEach((day) => {
+                        currentWeek.push(day);
+                        // Friday is day 5
+                        if (day.dayOfWeek === 5) {
+                          weeks.push([...currentWeek]);
+                          currentWeek = [];
+                        }
+                      });
+                      
+                      // Add incomplete week if exists
+                      if (currentWeek.length > 0) {
+                        weeks.push(currentWeek);
+                      }
+                      
+                      return weeks.map((week, weekIndex) => (
+                        <div key={weekIndex} className="grid grid-cols-5 gap-2">
+                          {/* Fill empty cells at the start of the week if needed */}
+                          {week[0] && Array.from({ length: week[0].dayOfWeek - 1 }).map((_, emptyIndex) => (
+                            <div key={`empty-${emptyIndex}`} className="aspect-square" />
+                          ))}
+                          
+                          {/* Render actual days */}
+                          {week.map((day, dayIndex) => (
+                            <div 
+                              key={dayIndex}
+                              className="aspect-square flex flex-col items-center justify-center p-3 rounded-lg border transition-all hover:shadow-md hover:scale-105"
+                              style={{
+                                backgroundColor: day.occupancy >= 75 ? 'rgba(239, 68, 68, 0.1)' : 
+                                               day.occupancy >= 50 ? 'rgba(249, 115, 22, 0.1)' : 
+                                               day.occupancy > 0 ? 'rgba(34, 197, 94, 0.1)' : 
+                                               'rgba(156, 163, 175, 0.05)',
+                                borderColor: day.occupancy >= 75 ? 'rgba(239, 68, 68, 0.3)' : 
+                                            day.occupancy >= 50 ? 'rgba(249, 115, 22, 0.3)' : 
+                                            day.occupancy > 0 ? 'rgba(34, 197, 94, 0.3)' : 
+                                            'rgba(156, 163, 175, 0.2)'
+                              }}
+                            >
+                              <div className="text-2xl font-bold">
+                                {day.dayOfMonth}
+                              </div>
+                              <div className="text-xs font-medium text-muted-foreground mt-1">
+                                {day.bookings}/2
+                              </div>
+                              <div className="text-[10px] text-muted-foreground">
+                                {day.occupancy.toFixed(0)}%
+                              </div>
+                            </div>
+                          ))}
+                          
+                          {/* Fill empty cells at the end of the week if needed */}
+                          {week.length > 0 && week[week.length - 1] && 
+                            Array.from({ length: 5 - week[week.length - 1].dayOfWeek }).map((_, emptyIndex) => (
+                              <div key={`empty-end-${emptyIndex}`} className="aspect-square" />
+                            ))
+                          }
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* User Booking Statistics */}
+            <section className="animate-fade-in">
+              <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-2">
+                <div className="h-1 w-8 bg-gradient-success rounded"></div>
+                Booking Leaders
+              </h2>
+              <Card className="transition-all hover:shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-base sm:text-lg">Who Books the Most</CardTitle>
+                  <CardDescription>User ranking by total bookings</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {userBookingCounts.map((user, index) => (
+                      <div key={user.name}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                              index === 0 ? 'bg-yellow-500' :
+                              index === 1 ? 'bg-gray-400' :
+                              index === 2 ? 'bg-orange-600' :
+                              'bg-blue-500'
+                            }`}>
+                              {index + 1}
+                            </div>
+                            <span className="text-sm font-medium">{user.name}</span>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-bold">{user.count} total</div>
+                            <div className="text-xs text-muted-foreground">
+                              {user.thisWeek} this week • {user.thisMonth} this month
+                            </div>
+                          </div>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full transition-all duration-500 ${
+                              index === 0 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                              index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
+                              index === 2 ? 'bg-gradient-to-r from-orange-600 to-orange-700' :
+                              'bg-gradient-primary'
+                            }`}
+                            style={{ width: `${(user.count / userBookingCounts[0].count) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </section>
           </div>
         )}

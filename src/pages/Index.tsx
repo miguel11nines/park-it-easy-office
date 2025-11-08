@@ -3,10 +3,11 @@ import { ParkingSpotCard } from "@/components/ParkingSpotCard";
 import { BookingDialogWithValidation } from "@/components/BookingDialogWithValidation";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { BarChart3, Calendar, LogOut, User } from "lucide-react";
+import { BarChart3, Calendar, LogOut, User, Car, Bike } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 interface Booking {
@@ -16,6 +17,7 @@ interface Booking {
   vehicleType: "car" | "motorcycle";
   userName: string;
   spotNumber: number;
+  createdAt?: string;
 }
 
 const Index = () => {
@@ -54,8 +56,10 @@ const Index = () => {
         vehicleType: booking.vehicle_type as "car" | "motorcycle",
         userName: booking.user_name,
         spotNumber: booking.spot_number,
+        createdAt: booking.created_at,
       }));
 
+      console.log('Fetched bookings with created_at:', transformedBookings);
       setBookings(transformedBookings);
     } catch (error) {
       console.error('Error fetching bookings:', error);
@@ -124,6 +128,16 @@ const Index = () => {
 
   const spot84Bookings = activeBookings.filter(b => b.spotNumber === 84);
   const spot85Bookings = activeBookings.filter(b => b.spotNumber === 85);
+
+  // Personal statistics
+  const userName = user?.user_metadata?.user_name || user?.email;
+  const myBookings = bookings.filter(b => b.userName === userName);
+  const myActiveBookings = activeBookings.filter(b => b.userName === userName);
+  const myCarBookings = myBookings.filter(b => b.vehicleType === 'car').length;
+  const myMotorcycleBookings = myBookings.filter(b => b.vehicleType === 'motorcycle').length;
+  const mySpot84Count = myBookings.filter(b => b.spotNumber === 84).length;
+  const mySpot85Count = myBookings.filter(b => b.spotNumber === 85).length;
+  const myMostUsedSpot = mySpot84Count >= mySpot85Count ? 84 : 85;
 
   return (
     <div className="min-h-screen bg-background">
@@ -257,6 +271,20 @@ const Index = () => {
                                 <span className={isToday ? "text-orange-600 font-medium" : "text-blue-600 font-medium"}>
                                   {booking.vehicleType === "car" ? "🚗 Car" : "🏍️ Motorcycle"}
                                 </span>
+                                {booking.createdAt && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="text-xs">
+                                      📅 {new Date(booking.createdAt).toLocaleDateString('en-US', { 
+                                        month: 'short', 
+                                        day: 'numeric'
+                                      })} {new Date(booking.createdAt).toLocaleTimeString('en-US', { 
+                                        hour: '2-digit', 
+                                        minute: '2-digit'
+                                      })}
+                                    </span>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -288,6 +316,77 @@ const Index = () => {
                 </div>
               )}
             </section>
+
+            {/* Personal Statistics Section */}
+            {myBookings.length > 0 && (
+              <section className="scale-in">
+                <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-2">
+                  <div className="h-1 w-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full"></div>
+                  My Parking Stats
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
+                          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{myBookings.length}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {myActiveBookings.length} upcoming
+                          </p>
+                        </div>
+                        <Calendar className="h-10 w-10 text-blue-500 opacity-50" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Favorite Spot</p>
+                          <p className="text-3xl font-bold text-green-600 dark:text-green-400">Spot {myMostUsedSpot}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {Math.max(mySpot84Count, mySpot85Count)} times
+                          </p>
+                        </div>
+                        <BarChart3 className="h-10 w-10 text-green-500 opacity-50" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 border-orange-200 dark:border-orange-800">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">🚗 Car Bookings</p>
+                          <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{myCarBookings}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {myBookings.length > 0 ? ((myCarBookings / myBookings.length) * 100).toFixed(0) : 0}% of total
+                          </p>
+                        </div>
+                        <Car className="h-10 w-10 text-orange-500 opacity-50" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 border-purple-200 dark:border-purple-800">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">🏍️ Motorcycle</p>
+                          <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{myMotorcycleBookings}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {myBookings.length > 0 ? ((myMotorcycleBookings / myBookings.length) * 100).toFixed(0) : 0}% of total
+                          </p>
+                        </div>
+                        <Bike className="h-10 w-10 text-purple-500 opacity-50" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </section>
+            )}
           </>
         )}
       </div>

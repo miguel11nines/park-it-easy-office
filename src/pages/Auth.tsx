@@ -6,24 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { z } from "zod";
+import { toast } from "sonner";
 
 const ALLOWED_EMAIL_DOMAIN = "@lht.dlh.de";
 
-const emailSchema = z.string()
-  .email("Please enter a valid email address")
-  .max(255)
-  .refine((email) => email.endsWith(ALLOWED_EMAIL_DOMAIN), {
-    message: `Only ${ALLOWED_EMAIL_DOMAIN} email addresses are allowed`,
-  });
-
-const passwordSchema = z.string().min(6, "Password must be at least 6 characters").max(72);
-const nameSchema = z.string().trim().min(1, "Name is required").max(100);
-
 export default function Auth() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -31,29 +19,18 @@ export default function Auth() {
   const [signupPassword, setSignupPassword] = useState("");
   const [signupName, setSignupName] = useState("");
   const [resetEmail, setResetEmail] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         navigate("/");
       }
-    });
+    };
+    checkSession();
 
-    // Check if this is a password reset callback
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    if (hashParams.get('type') === 'recovery') {
-      setIsResettingPassword(true);
-    }
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsResettingPassword(true);
-      }
-      if (session && event !== 'PASSWORD_RECOVERY') {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
         navigate("/");
       }
     });
@@ -61,54 +38,61 @@ export default function Auth() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const validateEmail = (email: string): boolean => {
+    if (!email || email.trim() === "") {
+      toast.error("Email is required");
+      return false;
+    }
+    if (!email.includes("@")) {
+      toast.error("Please enter a valid email address");
+      return false;
+    }
+    if (!email.endsWith(ALLOWED_EMAIL_DOMAIN)) {
+      toast.error(`Only ${ALLOWED_EMAIL_DOMAIN} email addresses are allowed`);
+      return false;
+    }
+    return true;
+  };
+
+  const validatePassword = (password: string): boolean => {
+    if (!password || password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return false;
+    }
+    return true;
+  };
+
+  const validateName = (name: string): boolean => {
+    if (!name || name.trim() === "") {
+      toast.error("Name is required");
+      return false;
+    }
+    return true;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateEmail(loginEmail) || !validatePassword(loginPassword)) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Validate inputs
-      emailSchema.parse(loginEmail);
-      passwordSchema.parse(loginPassword);
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginEmail.trim(),
         password: loginPassword,
       });
 
       if (error) {
-        if (error.message.includes("Invalid login credentials")) {
-          toast({
-            title: "Login failed",
-            description: "Invalid email or password. Please try again.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Login failed",
-            description: "An error occurred. Please try again later.",
-            variant: "destructive",
-          });
-        }
-      } else {
-        toast({
-          title: "Welcome back!",
-          description: "You've successfully logged in.",
-        });
+        toast.error(error.message || "Invalid email or password");
+      } else if (data.session) {
+        toast.success("Welcome back!");
+        navigate("/");
       }
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast({
-          title: "Validation error",
-          description: error.errors[0].message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Login failed",
-          description: "An unexpected error occurred.",
-          variant: "destructive",
-        });
-      }
+      toast.error("Failed to connect. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -116,192 +100,67 @@ export default function Auth() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateName(signupName) || !validateEmail(signupEmail) || !validatePassword(signupPassword)) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Validate inputs
-      emailSchema.parse(signupEmail);
-      passwordSchema.parse(signupPassword);
-      nameSchema.parse(signupName);
-
-      const { error } = await supabase.auth.signUp({
-        email: signupEmail,
+      const { data, error } = await supabase.auth.signUp({
+        email: signupEmail.trim(),
         password: signupPassword,
         options: {
           data: {
-            user_name: signupName,
+            user_name: signupName.trim(),
           },
-          emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`,
         },
       });
 
       if (error) {
-        if (error.message.includes("already registered")) {
-          toast({
-            title: "Account exists",
-            description: "This email is already registered. Please log in instead.",
-            variant: "destructive",
-          });
+        toast.error(error.message || "Failed to create account");
+      } else if (data.user) {
+        if (data.session) {
+          toast.success("Account created successfully!");
+          navigate("/");
         } else {
-          toast({
-            title: "Signup failed",
-            description: "An error occurred. Please try again later.",
-            variant: "destructive",
-          });
+          toast.success("Account created! Please check your email to confirm.");
         }
-      } else {
-        toast({
-          title: "Account created!",
-          description: "You've successfully signed up and are now logged in.",
-        });
       }
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast({
-          title: "Validation error",
-          description: error.errors[0].message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Signup failed",
-          description: "An unexpected error occurred.",
-          variant: "destructive",
-        });
-      }
+      toast.error("Failed to connect. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleResetPasswordRequest = async (e: React.FormEvent) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateEmail(resetEmail)) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      emailSchema.parse(resetEmail);
-
-      // Construct the correct redirect URL
-      const baseUrl = import.meta.env.BASE_URL || '/';
-      const redirectUrl = `${window.location.origin}${baseUrl}auth`.replace(/([^:]\/)\/+/g, "$1");
-      
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: redirectUrl,
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
+        redirectTo: `${window.location.origin}/auth`,
       });
 
       if (error) {
-        toast({
-          title: "Reset request failed",
-          description: "An error occurred. Please try again later.",
-          variant: "destructive",
-        });
+        toast.error(error.message || "Failed to send reset email");
       } else {
-        toast({
-          title: "Reset email sent!",
-          description: "Check your email for a password reset link.",
-        });
+        toast.success("Check your email for a password reset link");
         setResetEmail("");
       }
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast({
-          title: "Validation error",
-          description: error.errors[0].message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Reset request failed",
-          description: "An unexpected error occurred.",
-          variant: "destructive",
-        });
-      }
+      toast.error("Failed to connect. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
-
-  const handleUpdatePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      passwordSchema.parse(newPassword);
-
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
-      if (error) {
-        toast({
-          title: "Password update failed",
-          description: "An error occurred. Please try again.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Password updated!",
-          description: "Your password has been successfully changed.",
-        });
-        setIsResettingPassword(false);
-        setNewPassword("");
-        navigate("/");
-      }
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast({
-          title: "Validation error",
-          description: error.errors[0].message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Password update failed",
-          description: "An unexpected error occurred.",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (isResettingPassword) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-hero p-4">
-        <Card className="w-full max-w-md shadow-glow animate-fade-in">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Reset Password</CardTitle>
-            <CardDescription className="text-center">
-              Enter your new password
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleUpdatePassword} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Password must be at least 6 characters
-                </p>
-              </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Updating..." : "Update Password"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-hero p-4">
@@ -327,7 +186,7 @@ export default function Auth() {
                   <Input
                     id="login-email"
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder="your@lht.dlh.de"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     required
@@ -344,6 +203,7 @@ export default function Auth() {
                     onChange={(e) => setLoginPassword(e.target.value)}
                     required
                     disabled={isLoading}
+                    minLength={6}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
@@ -359,7 +219,7 @@ export default function Auth() {
                   <Input
                     id="signup-name"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Paco Clavel"
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
                     required
@@ -391,6 +251,7 @@ export default function Auth() {
                     onChange={(e) => setSignupPassword(e.target.value)}
                     required
                     disabled={isLoading}
+                    minLength={6}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
@@ -400,7 +261,7 @@ export default function Auth() {
             </TabsContent>
 
             <TabsContent value="reset">
-              <form onSubmit={handleResetPasswordRequest} className="space-y-4">
+              <form onSubmit={handleResetPassword} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="reset-email">Email</Label>
                   <Input
