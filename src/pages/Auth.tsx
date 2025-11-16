@@ -21,21 +21,26 @@ export default function Auth() {
   const [resetEmail, setResetEmail] = useState("");
 
   useEffect(() => {
+    let mounted = true;
+
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      if (mounted && session) {
         navigate("/");
       }
     };
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
+      if (mounted && session) {
         navigate("/");
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const validateEmail = (email: string): boolean => {

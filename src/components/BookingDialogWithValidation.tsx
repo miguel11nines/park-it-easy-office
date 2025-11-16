@@ -12,6 +12,15 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
+// Type guards for runtime validation
+const isDuration = (value: unknown): value is "morning" | "afternoon" | "full" => {
+  return value === "morning" || value === "afternoon" || value === "full";
+};
+
+const isVehicleType = (value: unknown): value is "car" | "motorcycle" => {
+  return value === "car" || value === "motorcycle";
+};
+
 interface Booking {
   id: string;
   date: string;
@@ -96,9 +105,13 @@ export const BookingDialogWithValidation = ({
 
       // Validation for car booking: must not overlap with any car or motorcycle
       if (vehicleType === "car") {
-        const conflict = bookingsForDate.some(b => 
-          overlaps(duration, b.duration as "morning" | "afternoon" | "full")
-        );
+        const conflict = bookingsForDate.some(b => {
+          if (!isDuration(b.duration)) {
+            console.error('Invalid duration in booking:', b.duration);
+            return false;
+          }
+          return overlaps(duration, b.duration);
+        });
         if (conflict) {
           toast.error("This spot already has a booking at that time");
           setIsValidating(false);
@@ -108,20 +121,26 @@ export const BookingDialogWithValidation = ({
 
       // Validation for motorcycle booking: must not overlap with cars and max 4 overlapping motorcycles
       if (vehicleType === "motorcycle") {
-        const carConflict = bookingsForDate.some(b => 
-          b.vehicle_type === "car" && 
-          overlaps(duration, b.duration as "morning" | "afternoon" | "full")
-        );
+        const carConflict = bookingsForDate.some(b => {
+          if (!isDuration(b.duration) || !isVehicleType(b.vehicle_type)) {
+            console.error('Invalid booking data:', b);
+            return false;
+          }
+          return b.vehicle_type === "car" && overlaps(duration, b.duration);
+        });
         if (carConflict) {
           toast.error("A car is booked for that time on this spot");
           setIsValidating(false);
           return;
         }
 
-        const overlappingMotoCount = bookingsForDate.filter(
-          b => b.vehicle_type === "motorcycle" && 
-               overlaps(duration, b.duration as "morning" | "afternoon" | "full")
-        ).length;
+        const overlappingMotoCount = bookingsForDate.filter(b => {
+          if (!isDuration(b.duration) || !isVehicleType(b.vehicle_type)) {
+            console.error('Invalid booking data:', b);
+            return false;
+          }
+          return b.vehicle_type === "motorcycle" && overlaps(duration, b.duration);
+        }).length;
 
         if (overlappingMotoCount >= 4) {
           toast.error("Maximum 4 motorcycles allowed at the same time on this spot");
