@@ -235,4 +235,79 @@ describe('ParkingSpotCard', () => {
       expect(screen.getByText('Partially Booked')).toBeInTheDocument();
     });
   });
+
+  describe('Button color based on status', () => {
+    it('should show orange button when spot is fully booked', () => {
+      const onBook = vi.fn();
+      const today = new Date().toISOString().split('T')[0];
+      
+      const currentBookings = [
+        {
+          id: '1',
+          date: today,
+          duration: 'full' as const,
+          vehicleType: 'car' as const,
+          userName: 'John Doe',
+        },
+      ];
+
+      render(
+        <ParkingSpotCard
+          spotNumber={84}
+          currentBookings={currentBookings}
+          onBook={onBook}
+        />
+      );
+
+      const button = screen.getByRole('button', { name: /book this spot/i });
+      // Check that button has orange gradient classes for fully booked spots
+      expect(button.className).toContain('from-orange-500');
+      expect(button.className).toContain('to-orange-600');
+    });
+
+    it('should show blue button when spot is available', () => {
+      const onBook = vi.fn();
+      
+      render(
+        <ParkingSpotCard
+          spotNumber={84}
+          currentBookings={[]}
+          onBook={onBook}
+        />
+      );
+
+      const button = screen.getByRole('button', { name: /book this spot/i });
+      // Check that button has blue gradient classes for available spots
+      expect(button.className).toContain('from-blue-500');
+      expect(button.className).toContain('to-blue-600');
+    });
+
+    it('should show blue button when spot is partially booked', () => {
+      const onBook = vi.fn();
+      const today = new Date().toISOString().split('T')[0];
+      
+      const currentBookings = [
+        {
+          id: '1',
+          date: today,
+          duration: 'morning' as const,
+          vehicleType: 'car' as const,
+          userName: 'Morning User',
+        },
+      ];
+
+      render(
+        <ParkingSpotCard
+          spotNumber={84}
+          currentBookings={currentBookings}
+          onBook={onBook}
+        />
+      );
+
+      const button = screen.getByRole('button', { name: /book this spot/i });
+      // Check that button has blue gradient classes for partially booked spots
+      expect(button.className).toContain('from-blue-500');
+      expect(button.className).toContain('to-blue-600');
+    });
+  });
 });
