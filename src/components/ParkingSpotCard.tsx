@@ -133,7 +133,12 @@ export const ParkingSpotCard = ({ spotNumber, currentBookings, onBook }: Parking
         )}
         <Button 
           onClick={onBook} 
-          className="w-full transition-all hover:scale-105 text-sm sm:text-base font-semibold shadow-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-blue-500/50"
+          className={cn(
+            "w-full transition-all hover:scale-105 text-sm sm:text-base font-semibold shadow-lg text-white",
+            status === "full" 
+              ? "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-orange-500/50"
+              : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-blue-500/50"
+          )}
         >
           Book This Spot
         </Button>
