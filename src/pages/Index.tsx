@@ -142,7 +142,7 @@ const Index = () => {
   // More meaningful personal stats
   const thisWeekStart = new Date(today);
   const weekday = thisWeekStart.getDay();
-  thisWeekStart.setDate(today.getDate() - weekday);
+  thisWeekStart.setDate(thisWeekStart.getDate() - weekday);
   const thisWeekEnd = new Date(thisWeekStart);
   thisWeekEnd.setDate(thisWeekStart.getDate() + 6);
   
