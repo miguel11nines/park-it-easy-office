@@ -24,8 +24,8 @@ export const useAuth = () => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    // Redirect to Lufthansa homepage after logout
-    window.location.href = 'https://www.lufthansa.com/es/en/homepage';
+    // Redirect to auth page after logout
+    window.location.href = 'https://miguel11nines.github.io/park-it-easy-office/auth';
   };
 
   return { user, loading, signOut };
