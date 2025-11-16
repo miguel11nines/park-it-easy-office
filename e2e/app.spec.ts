@@ -13,7 +13,7 @@ test.describe('Application Visual Tests', () => {
     await page.goto('/');
     
     // Check for main heading
-    await expect(page.locator('h1')).toContainText('Parking at Work');
+    await expect(page.locator('h1')).toContainText('Park it easy office');
   });
 
   test('should be responsive on mobile', async ({ page }) => {

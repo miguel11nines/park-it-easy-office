@@ -147,7 +147,7 @@ const Index = () => {
         <div className="container mx-auto max-w-6xl relative z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="animate-fade-in flex-1">
-              <h1 className="text-3xl md:text-5xl font-bold mb-2 md:mb-4 tracking-tight">Parking at Work</h1>
+              <h1 className="text-3xl md:text-5xl font-bold mb-2 md:mb-4 tracking-tight">Park it easy office</h1>
               <p className="text-base md:text-xl opacity-90 font-light">
                 Easy parking spot management for our team
               </p>
