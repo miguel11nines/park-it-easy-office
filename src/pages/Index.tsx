@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { BarChart3, Calendar, LogOut, User, Car, Bike } from "lucide-react";
+import { BarChart3, Calendar, LogOut, User, Car, Bike, Clock, Activity } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 interface Booking {
@@ -138,6 +138,38 @@ const Index = () => {
   const mySpot84Count = myBookings.filter(b => b.spotNumber === 84).length;
   const mySpot85Count = myBookings.filter(b => b.spotNumber === 85).length;
   const myMostUsedSpot = mySpot84Count >= mySpot85Count ? 84 : 85;
+
+  // More meaningful personal stats
+  const thisWeekStart = new Date(today);
+  const weekday = thisWeekStart.getDay();
+  thisWeekStart.setDate(today.getDate() - weekday);
+  const thisWeekEnd = new Date(thisWeekStart);
+  thisWeekEnd.setDate(thisWeekStart.getDate() + 6);
+  
+  const myWeekBookings = myBookings.filter(b => {
+    const bookingDate = new Date(b.date);
+    return bookingDate >= thisWeekStart && bookingDate <= thisWeekEnd;
+  });
+
+  // Calculate preferred time slot
+  const myMorningCount = myBookings.filter(b => b.duration === "morning" || b.duration === "full").length;
+  const myAfternoonCount = myBookings.filter(b => b.duration === "afternoon" || b.duration === "full").length;
+  const myFullDayCount = myBookings.filter(b => b.duration === "full").length;
+  
+  let myPreferredTime = "Not set";
+  if (myFullDayCount > myMorningCount * 0.5 && myFullDayCount > myAfternoonCount * 0.5) {
+    myPreferredTime = "Full Day";
+  } else if (myMorningCount > myAfternoonCount) {
+    myPreferredTime = "Morning";
+  } else if (myAfternoonCount > myMorningCount) {
+    myPreferredTime = "Afternoon";
+  }
+
+  // Average bookings per week for user
+  const weeksActive = myBookings.length > 0 
+    ? Math.max(1, Math.ceil((new Date().getTime() - new Date(myBookings[0].date).getTime()) / (7 * 24 * 60 * 60 * 1000)))
+    : 0;
+  const avgBookingsPerWeek = weeksActive > 0 ? (myBookings.length / weeksActive).toFixed(1) : '0';
 
   return (
     <div className="min-h-screen bg-background">
@@ -329,10 +361,10 @@ const Index = () => {
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
-                          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{myBookings.length}</p>
+                          <p className="text-sm font-medium text-muted-foreground">Booking Frequency</p>
+                          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{avgBookingsPerWeek}</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {myActiveBookings.length} upcoming
+                            bookings/week average
                           </p>
                         </div>
                         <Calendar className="h-10 w-10 text-blue-500 opacity-50" />
@@ -344,10 +376,10 @@ const Index = () => {
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Favorite Spot</p>
-                          <p className="text-3xl font-bold text-green-600 dark:text-green-400">Spot {myMostUsedSpot}</p>
+                          <p className="text-sm font-medium text-muted-foreground">This Week</p>
+                          <p className="text-3xl font-bold text-green-600 dark:text-green-400">{myWeekBookings.length}</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {Math.max(mySpot84Count, mySpot85Count)} times
+                            {myBookings.length} all-time total
                           </p>
                         </div>
                         <BarChart3 className="h-10 w-10 text-green-500 opacity-50" />
@@ -359,13 +391,13 @@ const Index = () => {
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">🚗 Car Bookings</p>
-                          <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{myCarBookings}</p>
+                          <p className="text-sm font-medium text-muted-foreground">Preferred Time</p>
+                          <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{myPreferredTime}</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {myBookings.length > 0 ? ((myCarBookings / myBookings.length) * 100).toFixed(0) : 0}% of total
+                            most common choice
                           </p>
                         </div>
-                        <Car className="h-10 w-10 text-orange-500 opacity-50" />
+                        <Clock className="h-10 w-10 text-orange-500 opacity-50" />
                       </div>
                     </CardContent>
                   </Card>
@@ -374,13 +406,13 @@ const Index = () => {
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">🏍️ Motorcycle</p>
-                          <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{myMotorcycleBookings}</p>
+                          <p className="text-sm font-medium text-muted-foreground">Favorite Spot</p>
+                          <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">Spot {myMostUsedSpot}</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {myBookings.length > 0 ? ((myMotorcycleBookings / myBookings.length) * 100).toFixed(0) : 0}% of total
+                            {Math.max(mySpot84Count, mySpot85Count)} times booked
                           </p>
                         </div>
-                        <Bike className="h-10 w-10 text-purple-500 opacity-50" />
+                        <Activity className="h-10 w-10 text-purple-500 opacity-50" />
                       </div>
                     </CardContent>
                   </Card>

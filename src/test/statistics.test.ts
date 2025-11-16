@@ -304,4 +304,132 @@ describe('Statistics Functionality', () => {
       expect(spot85Usage).toBe(0);
     });
   });
+
+  describe('Trend Calculations', () => {
+    it('should calculate week-over-week growth correctly', () => {
+      const thisWeekBookings = [
+        { id: '1', date: '2025-11-10' },
+        { id: '2', date: '2025-11-11' },
+        { id: '3', date: '2025-11-12' },
+      ];
+      const lastWeekBookings = [
+        { id: '4', date: '2025-11-03' },
+        { id: '5', date: '2025-11-04' },
+      ];
+
+      const weeklyGrowth = lastWeekBookings.length > 0
+        ? ((thisWeekBookings.length - lastWeekBookings.length) / lastWeekBookings.length) * 100
+        : 0;
+
+      expect(weeklyGrowth).toBe(50); // 3 vs 2 = 50% growth
+    });
+
+    it('should calculate negative growth correctly', () => {
+      const thisWeekBookings = [
+        { id: '1', date: '2025-11-10' },
+      ];
+      const lastWeekBookings = [
+        { id: '4', date: '2025-11-03' },
+        { id: '5', date: '2025-11-04' },
+      ];
+
+      const weeklyGrowth = lastWeekBookings.length > 0
+        ? ((thisWeekBookings.length - lastWeekBookings.length) / lastWeekBookings.length) * 100
+        : 0;
+
+      expect(weeklyGrowth).toBe(-50); // 1 vs 2 = -50% decline
+    });
+
+    it('should handle zero growth', () => {
+      const thisWeekBookings = [
+        { id: '1', date: '2025-11-10' },
+        { id: '2', date: '2025-11-11' },
+      ];
+      const lastWeekBookings = [
+        { id: '4', date: '2025-11-03' },
+        { id: '5', date: '2025-11-04' },
+      ];
+
+      const weeklyGrowth = lastWeekBookings.length > 0
+        ? ((thisWeekBookings.length - lastWeekBookings.length) / lastWeekBookings.length) * 100
+        : 0;
+
+      expect(weeklyGrowth).toBe(0); // 2 vs 2 = 0% growth
+    });
+  });
+
+  describe('Advanced Metrics', () => {
+    it('should calculate average bookings per user', () => {
+      const bookings: MockBooking[] = [
+        { id: '1', user_name: 'Alice' },
+        { id: '2', user_name: 'Alice' },
+        { id: '3', user_name: 'Alice' },
+        { id: '4', user_name: 'Bob' },
+        { id: '5', user_name: 'Bob' },
+        { id: '6', user_name: 'Charlie' },
+      ];
+
+      const uniqueUsers = [...new Set(bookings.map(b => b.user_name))];
+      const avgBookingsPerUser = uniqueUsers.length > 0
+        ? (bookings.length / uniqueUsers.length).toFixed(1)
+        : '0';
+
+      expect(avgBookingsPerUser).toBe('2.0'); // 6 bookings / 3 users = 2.0
+    });
+
+    it('should find peak day of the week', () => {
+      const bookings: MockBooking[] = [
+        { id: '1', date: '2025-11-03' }, // Monday
+        { id: '2', date: '2025-11-04' }, // Tuesday
+        { id: '3', date: '2025-11-04' }, // Tuesday
+        { id: '4', date: '2025-11-04' }, // Tuesday
+        { id: '5', date: '2025-11-05' }, // Wednesday
+      ];
+
+      const dayOfWeekCounts = [0, 0, 0, 0, 0, 0, 0]; // Sun to Sat
+      bookings.forEach(b => {
+        if (b.date) {
+          const date = new Date(b.date);
+          dayOfWeekCounts[date.getDay()]++;
+        }
+      });
+
+      const peakDayIndex = dayOfWeekCounts.indexOf(Math.max(...dayOfWeekCounts));
+      const peakDay = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][peakDayIndex];
+
+      expect(peakDay).toBe('Tuesday');
+      expect(dayOfWeekCounts[2]).toBe(3); // Tuesday (index 2) has 3 bookings
+    });
+
+    it('should calculate preferred time slot', () => {
+      const bookings: MockBooking[] = [
+        { id: '1', duration: 'morning' },
+        { id: '2', duration: 'morning' },
+        { id: '3', duration: 'morning' },
+        { id: '4', duration: 'afternoon' },
+        { id: '5', duration: 'full' },
+      ];
+
+      const morningCount = bookings.filter(
+        b => b.duration === 'morning' || b.duration === 'full'
+      ).length;
+      const afternoonCount = bookings.filter(
+        b => b.duration === 'afternoon' || b.duration === 'full'
+      ).length;
+      const fullDayCount = bookings.filter(b => b.duration === 'full').length;
+
+      let preferredTime = 'Not set';
+      if (fullDayCount > morningCount * 0.5 && fullDayCount > afternoonCount * 0.5) {
+        preferredTime = 'Full Day';
+      } else if (morningCount > afternoonCount) {
+        preferredTime = 'Morning';
+      } else if (afternoonCount > morningCount) {
+        preferredTime = 'Afternoon';
+      }
+
+      expect(preferredTime).toBe('Morning'); // 4 morning (including full) vs 2 afternoon
+      expect(morningCount).toBe(4);
+      expect(afternoonCount).toBe(2);
+    });
+  });
 });
