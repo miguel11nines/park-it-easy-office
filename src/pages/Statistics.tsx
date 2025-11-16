@@ -14,6 +14,7 @@ interface Booking {
   vehicle_type: "car" | "motorcycle";
   user_name: string;
   spot_number: number;
+  created_at?: string;
 }
 
 const Statistics = () => {
@@ -59,6 +60,15 @@ const Statistics = () => {
   const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
   const thisMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
+  // Previous week and month for comparison
+  const lastWeekStart = new Date(thisWeekStart);
+  lastWeekStart.setDate(thisWeekStart.getDate() - 7);
+  const lastWeekEnd = new Date(thisWeekEnd);
+  lastWeekEnd.setDate(thisWeekEnd.getDate() - 7);
+
+  const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+
   const filterByDateRange = (start: Date, end: Date) => {
     return bookings.filter(b => {
       const bookingDate = new Date(b.date);
@@ -68,6 +78,8 @@ const Statistics = () => {
 
   const thisWeekBookings = filterByDateRange(thisWeekStart, thisWeekEnd);
   const thisMonthBookings = filterByDateRange(thisMonthStart, thisMonthEnd);
+  const lastWeekBookings = filterByDateRange(lastWeekStart, lastWeekEnd);
+  const lastMonthBookings = filterByDateRange(lastMonthStart, lastMonthEnd);
   const activeBookings = bookings.filter(b => new Date(b.date) >= new Date(new Date().setHours(0, 0, 0, 0)));
 
   // Get unique users
@@ -84,6 +96,43 @@ const Statistics = () => {
   const carBookings = bookings.filter(b => b.vehicle_type === "car").length;
   const motorcycleBookings = bookings.filter(b => b.vehicle_type === "motorcycle").length;
   const totalBookings = bookings.length;
+
+  // Calculate weekly and monthly trends
+  const weeklyGrowth = lastWeekBookings.length > 0 
+    ? ((thisWeekBookings.length - lastWeekBookings.length) / lastWeekBookings.length) * 100 
+    : 0;
+  const monthlyGrowth = lastMonthBookings.length > 0 
+    ? ((thisMonthBookings.length - lastMonthBookings.length) / lastMonthBookings.length) * 100 
+    : 0;
+
+  // Active users who booked this month
+  const activeUsersThisMonth = [...new Set(thisMonthBookings.map(b => b.user_name))];
+  
+  // Average bookings per active user
+  const avgBookingsPerUser = activeUsersThisMonth.length > 0 
+    ? (thisMonthBookings.length / activeUsersThisMonth.length).toFixed(1) 
+    : '0';
+
+  // Peak booking day of the week
+  const dayOfWeekCounts = [0, 0, 0, 0, 0, 0, 0]; // Sun to Sat
+  bookings.forEach(b => {
+    const date = new Date(b.date);
+    dayOfWeekCounts[date.getDay()]++;
+  });
+  const peakDay = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][
+    dayOfWeekCounts.indexOf(Math.max(...dayOfWeekCounts))
+  ];
+
+  // Average booking lead time (days in advance)
+  const bookingsWithCreatedAt = bookings.filter(b => b.created_at);
+  const avgLeadTime = bookingsWithCreatedAt.length > 0
+    ? bookingsWithCreatedAt.reduce((sum, b) => {
+        const bookingDate = new Date(b.date);
+        const createdDate = new Date(b.created_at!);
+        const diffDays = Math.floor((bookingDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+        return sum + Math.max(0, diffDays);
+      }, 0) / bookingsWithCreatedAt.length
+    : 0;
 
   // Calculate occupation percentage
   // Each spot can have one booking per day (car or motorcycle)
@@ -154,60 +203,68 @@ const Statistics = () => {
 
   const stats = [
     {
-      title: "Total Bookings",
-      value: totalBookings,
-      icon: Calendar,
-      gradient: "bg-gradient-primary",
-      description: "All time"
-    },
-    {
-      title: "Active Users",
-      value: uniqueUsers.length,
-      icon: Users,
-      gradient: "bg-gradient-success",
-      description: "Team members"
-    },
-    {
-      title: "This Week",
+      title: "This Week's Bookings",
       value: thisWeekBookings.length,
       icon: TrendingUp,
       gradient: "bg-gradient-accent",
-      description: `${weekOccupation.toFixed(1)}% avg occupancy`
+      description: weeklyGrowth > 0 
+        ? `↑ ${weeklyGrowth.toFixed(0)}% vs last week` 
+        : weeklyGrowth < 0 
+        ? `↓ ${Math.abs(weeklyGrowth).toFixed(0)}% vs last week` 
+        : "No change from last week"
     },
     {
-      title: "This Month",
+      title: "This Month's Bookings",
       value: thisMonthBookings.length,
       icon: BarChart3,
       gradient: "bg-gradient-primary",
-      description: `${monthOccupation.toFixed(1)}% avg occupancy`
+      description: monthlyGrowth > 0 
+        ? `↑ ${monthlyGrowth.toFixed(0)}% vs last month` 
+        : monthlyGrowth < 0 
+        ? `↓ ${Math.abs(monthlyGrowth).toFixed(0)}% vs last month` 
+        : "No change from last month"
     },
     {
-      title: "Car Bookings",
-      value: carBookings,
+      title: "Active Users",
+      value: activeUsersThisMonth.length,
+      icon: Users,
+      gradient: "bg-gradient-success",
+      description: `${avgBookingsPerUser} avg bookings per user`
+    },
+    {
+      title: "Week Utilization",
+      value: `${weekOccupation.toFixed(0)}%`,
+      icon: Percent,
+      gradient: "bg-gradient-primary",
+      description: thisWeekBookings.length > 0 ? `${thisWeekBookings.length} bookings this week` : "No bookings this week"
+    },
+    {
+      title: "Month Utilization",
+      value: `${monthOccupation.toFixed(0)}%`,
+      icon: Activity,
+      gradient: "bg-gradient-success",
+      description: thisMonthBookings.length > 0 ? `${thisMonthBookings.length} bookings this month` : "No bookings this month"
+    },
+    {
+      title: "Peak Day",
+      value: peakDay,
+      icon: Calendar,
+      gradient: "bg-gradient-accent",
+      description: `Most popular booking day`
+    },
+    {
+      title: "Booking Lead Time",
+      value: `${avgLeadTime.toFixed(1)} days`,
+      icon: Clock,
+      gradient: "bg-gradient-primary",
+      description: "Avg advance booking time"
+    },
+    {
+      title: "Vehicle Mix",
+      value: `${((carBookings / totalBookings) * 100 || 0).toFixed(0)}% Cars`,
       icon: Car,
       gradient: "bg-gradient-success",
-      description: `${((carBookings / totalBookings) * 100 || 0).toFixed(1)}% of total`
-    },
-    {
-      title: "Motorcycle Bookings",
-      value: motorcycleBookings,
-      icon: Bike,
-      gradient: "bg-gradient-accent",
-      description: `${((motorcycleBookings / totalBookings) * 100 || 0).toFixed(1)}% of total`
-    },
-    {
-      title: "Most Popular Spot",
-      value: `Spot ${mostPopularSpot}`,
-      icon: Activity,
-      gradient: "bg-gradient-primary",
-      description: `${Math.max(spot84Count, spot85Count)} bookings`
-    },
-    {
-      title: "Most Popular Time",
-      value: mostPopularTime,
-      icon: Clock,
-      gradient: "bg-gradient-success",
-      description: `${Math.max(morningCount, afternoonCount)} bookings`
+      description: `${((motorcycleBookings / totalBookings) * 100 || 0).toFixed(0)}% motorcycles`
     },
   ];
 
