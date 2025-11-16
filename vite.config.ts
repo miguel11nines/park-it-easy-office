@@ -15,5 +15,5 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: "/park-pal-work/",
+  base: "/park-it-easy-office/",
 }));
