@@ -13,7 +13,7 @@
 
 ### 2. Configure GitHub Repository Secrets
 
-1. Go to your GitHub repository: `https://github.com/miguel11nines/park-pal-work`
+1. Go to your GitHub repository: `https://github.com/miguel11nines/park-it-easy-office`
 2. Click on **Settings** → **Secrets and variables** → **Actions**
 3. Click **New repository secret** and add:
    - Name: `VITE_SUPABASE_URL`
@@ -41,7 +41,7 @@ git push origin main
 1. Go to the **Actions** tab in your repository
 2. You should see the "Deploy to GitHub Pages" workflow running
 3. Once completed, your site will be available at:
-   - `https://miguel11nines.github.io/park-pal-work/`
+   - `https://miguel11nines.github.io/park-it-easy-office/`
 
 ## 🔧 Local Development
 
@@ -85,7 +85,7 @@ Every push to the `main` branch will automatically trigger a new deployment to G
 
 ### 404 Errors on GitHub Pages
 - Make sure the `base` in `vite.config.ts` matches your repository name
-- Current setting: `base: "/park-pal-work/"`
+- Current setting: `base: "/park-it-easy-office/"`
 
 ## 📚 Resources
 

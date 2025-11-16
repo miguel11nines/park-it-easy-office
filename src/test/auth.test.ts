@@ -52,8 +52,8 @@ describe('Authentication Service', () => {
     it('should construct correct redirect URL for localhost', () => {
       // Test for local development
       const origin = 'http://localhost:8080';
-      const baseUrl = '/park-pal-work/';
-      const expected = `${origin}/park-pal-work/auth`;
+      const baseUrl = '/park-it-easy-office/';
+      const expected = `${origin}/park-it-easy-office/auth`;
       
       const redirectUrl = `${origin}${baseUrl}auth`.replace(/([^:]\/)\/+/g, "$1");
       
@@ -63,8 +63,8 @@ describe('Authentication Service', () => {
     it('should construct correct redirect URL for production', () => {
       // Test for GitHub Pages
       const origin = 'https://miguel11nines.github.io';
-      const baseUrl = '/park-pal-work/';
-      const expected = `${origin}/park-pal-work/auth`;
+      const baseUrl = '/park-it-easy-office/';
+      const expected = `${origin}/park-it-easy-office/auth`;
       
       const redirectUrl = `${origin}${baseUrl}auth`.replace(/([^:]\/)\/+/g, "$1");
       
@@ -81,7 +81,7 @@ describe('Authentication Service', () => {
 
     it('should call resetPasswordForEmail with correct parameters', async () => {
       const email = 'test@lht.dlh.de';
-      const redirectUrl = 'http://localhost:8080/park-pal-work/auth';
+      const redirectUrl = 'http://localhost:8080/park-it-easy-office/auth';
 
       vi.mocked(supabase.auth.resetPasswordForEmail).mockResolvedValue({
         data: {},
