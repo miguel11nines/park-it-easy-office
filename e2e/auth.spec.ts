@@ -5,7 +5,7 @@ test.describe('Authentication Flow', () => {
     await page.goto('/');
     
     // Should see the login page
-    await expect(page.locator('h1')).toContainText('Parking at Work');
+    await expect(page.locator('h1')).toContainText('Park it easy office');
     await expect(page.getByText('Login')).toBeVisible();
     await expect(page.getByText('Sign Up')).toBeVisible();
   });

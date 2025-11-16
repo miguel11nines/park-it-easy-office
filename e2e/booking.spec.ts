@@ -14,7 +14,7 @@ test.describe('Parking Spot Display', () => {
     await page.goto('/');
     
     // Check page title
-    await expect(page).toHaveTitle(/Parking at Work/i);
+    await expect(page).toHaveTitle(/Park it easy office/i);
   });
 
   test('should have responsive navigation', async ({ page }) => {
