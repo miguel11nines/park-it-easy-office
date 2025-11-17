@@ -37,6 +37,10 @@ test-results
 coverage
 .nyc_output
 
+# Supabase local development
+.temp
+supabase/.temp
+
 # Temporary files
 *.tmp
 *.temp
