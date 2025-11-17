@@ -12,6 +12,8 @@ name: Protect Main Branch
 jobs:
   validate-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check if push is authorized
         run: |
