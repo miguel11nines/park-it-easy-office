@@ -274,6 +274,12 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 - Pull request process
 - Issue reporting guidelines
 
+### Branch Protection
+
+The main branch is protected to ensure code quality and security. **Only the repository owner (@miguel11nines) can push directly to main.** All other contributors must create pull requests.
+
+For detailed information about branch protection rules, see [docs/BRANCH_PROTECTION.md](docs/BRANCH_PROTECTION.md).
+
 ### Quick Start for Contributors
 
 1. Fork the repository
@@ -283,7 +289,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 5. Run linting (`npm run lint`)
 6. Commit your changes (`git commit -m 'Add some amazing feature'`)
 7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+8. Open a Pull Request (requires approval from @miguel11nines)
 
 ## 📄 License
 

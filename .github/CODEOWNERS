@@ -1,0 +1,14 @@
+# CODEOWNERS file
+# This file defines individuals or teams that are responsible for code in this repository.
+# 
+# Each line is a file pattern followed by one or more owners.
+# The last matching pattern takes the most precedence.
+# 
+# More details: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Repository owner has final say on all files
+* @miguel11nines
+
+# Main branch protection - only the repository owner can approve changes to main
+# This works in conjunction with branch protection rules
+/.github/ @miguel11nines

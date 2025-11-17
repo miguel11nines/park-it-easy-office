@@ -38,6 +38,8 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ### Pull Requests
 
+**Important**: The main branch is protected. Only the repository owner (@miguel11nines) can push directly to main. All contributors must use pull requests. See [docs/BRANCH_PROTECTION.md](docs/BRANCH_PROTECTION.md) for details.
+
 1. **Fork the repository** and create your branch from `main`
 2. **Follow the coding standards** outlined below
 3. **Write or update tests** for your changes
@@ -45,6 +47,8 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 5. **Run the linter** and fix any issues (`npm run lint`)
 6. **Update documentation** as needed
 7. **Write a clear commit message**
+8. **Submit a pull request** for review by @miguel11nines
+9. **Wait for approval** before your changes can be merged
 
 ## Development Workflow
 
