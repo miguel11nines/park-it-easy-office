@@ -59,7 +59,6 @@ const Index = () => {
         createdAt: booking.created_at,
       }));
 
-      console.log('Fetched bookings with created_at:', transformedBookings);
       setBookings(transformedBookings);
     } catch (error) {
       console.error('Error fetching bookings:', error);

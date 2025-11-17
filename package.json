@@ -1,7 +1,26 @@
 {
-  "name": "vite_react_shadcn_ts",
-  "private": true,
-  "version": "0.0.0",
+  "name": "park-it-easy-office",
+  "version": "1.0.0",
+  "description": "A modern parking management system for office environments",
+  "author": "Park It Easy Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/miguel11nines/park-it-easy-office.git"
+  },
+  "bugs": {
+    "url": "https://github.com/miguel11nines/park-it-easy-office/issues"
+  },
+  "homepage": "https://github.com/miguel11nines/park-it-easy-office#readme",
+  "keywords": [
+    "parking",
+    "booking",
+    "management",
+    "react",
+    "typescript",
+    "supabase",
+    "vite"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
