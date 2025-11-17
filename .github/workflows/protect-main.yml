@@ -1,6 +1,7 @@
+---
 name: Protect Main Branch
 
-on:
+'on':
   push:
     branches:
       - main
@@ -17,21 +18,22 @@ jobs:
           echo "Validating push to main branch..."
           PUSHER="${{ github.actor }}"
           AUTHORIZED_USER="miguel11nines"
-          
+
           echo "Push initiated by: $PUSHER"
           echo "Authorized user: $AUTHORIZED_USER"
-          
+
           if [ "$PUSHER" != "$AUTHORIZED_USER" ]; then
-            echo "❌ Error: Direct pushes to main branch are only allowed by @$AUTHORIZED_USER"
+            echo "❌ Error: Direct pushes to main are only allowed"
+            echo "Only @$AUTHORIZED_USER can push directly."
             echo "Please create a pull request instead."
             exit 1
           fi
-          
-          echo "✅ Push authorized - user $PUSHER is allowed to push to main"
+
+          echo "✅ Push authorized - user $PUSHER allowed to push"
 
       - name: Notify unauthorized push attempt
         if: failure()
         run: |
           echo "::error::Unauthorized push to main branch detected!"
           echo "::error::Only @miguel11nines can push directly to main."
-          echo "::error::Please use pull requests for all other contributions."
+          echo "::error::Please use pull requests for contributions."
