@@ -214,6 +214,30 @@ npm run test:e2e:debug
 npm run test:e2e:report
 ```
 
+## 🔧 Maintenance Scripts
+
+### Delete GitHub Deployments
+
+Remove all GitHub deployments from the repository (useful for cleanup):
+
+```bash
+# Set your GitHub token
+export GH_TOKEN=your_github_token
+
+# Run the deletion script
+npm run delete:deployments
+```
+
+See [scripts/README-delete-deployments.md](scripts/README-delete-deployments.md) for more details.
+
+### Generate Favicons
+
+Generate favicons from a source image:
+
+```bash
+npm run generate:favicons
+```
+
 ## 📦 Building for Production
 
 ```bash
