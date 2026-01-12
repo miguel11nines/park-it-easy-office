@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### To Add
+### To Add 
 
 - Push notifications for booking reminders
 - Export statistics to CSV/PDF
@@ -200,7 +200,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## Types of Changes
+## Types of Changes 
 
 - `Added` for new features
 - `Changed` for changes in existing functionality
