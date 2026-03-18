@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Park it easy office</string>
+    <string name="title_activity_main">Park it easy office</string>
+    <string name="package_name">com.parkiteasy.office</string>
+    <string name="custom_url_scheme">com.parkiteasy.office</string>
+</resources>

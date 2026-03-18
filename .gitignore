@@ -50,6 +50,16 @@ supabase/.temp/
 Thumbs.db
 .DS_Store
 
+# Capacitor Android
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+android/app/release-keystore.jks
+android/app/signing.properties
+*.apk
+*.aab
+
 # Lock files (using pnpm)
 yarn.lock
 bun.lockb

@@ -13,7 +13,7 @@
        LIGHT THEME
        Clean, professional, with subtle blue accents
        ========================================================================== */
-    
+
     /* Core Colors */
     --background: 220 30% 98%;
     --foreground: 222 47% 11%;
@@ -64,11 +64,16 @@
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(210 100% 52%) 100%);
     --gradient-success: linear-gradient(135deg, hsl(142 71% 45%) 0%, hsl(142 76% 36%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(210 100% 52%) 0%, hsl(217 91% 60%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(262 83% 58%) 50%, hsl(217 91% 60%) 100%);
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(217 91% 60%) 0%,
+      hsl(262 83% 58%) 50%,
+      hsl(217 91% 60%) 100%
+    );
     --gradient-warm: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(25 95% 53%) 100%);
     --gradient-cool: linear-gradient(135deg, hsl(199 89% 48%) 0%, hsl(217 91% 60%) 100%);
     --gradient-surface: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 30% 98%) 100%);
-    
+
     /* Shadows */
     --shadow-xs: 0 1px 2px 0 hsl(220 10% 10% / 0.03);
     --shadow-sm: 0 1px 3px 0 hsl(220 10% 10% / 0.05), 0 1px 2px -1px hsl(220 10% 10% / 0.05);
@@ -104,7 +109,7 @@
        DARK THEME
        Deep, rich colors with vibrant accents
        ========================================================================== */
-    
+
     /* Core Colors */
     --background: 222 47% 6%;
     --foreground: 210 40% 98%;
@@ -151,9 +156,14 @@
     /* Gradients - Adjusted for dark mode */
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 55%) 0%, hsl(210 100% 47%) 100%);
     --gradient-success: linear-gradient(135deg, hsl(142 71% 40%) 0%, hsl(142 76% 32%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 50%) 0%, hsl(262 83% 50%) 50%, hsl(217 91% 50%) 100%);
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(217 91% 50%) 0%,
+      hsl(262 83% 50%) 50%,
+      hsl(217 91% 50%) 100%
+    );
     --gradient-surface: linear-gradient(180deg, hsl(222 47% 11%) 0%, hsl(222 47% 6%) 100%);
-    
+
     /* Shadows - Adjusted for dark mode */
     --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.3), 0 1px 2px -1px hsl(0 0% 0% / 0.3);
     --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.4), 0 2px 4px -2px hsl(0 0% 0% / 0.4);
@@ -182,13 +192,24 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    font-family:
+      -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Roboto,
+      'Helvetica Neue', sans-serif;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1,
+      'calt' 1;
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
   }
 
   /* Smooth theme transitions */
   html {
-    transition: background-color var(--transition-slow), color var(--transition-slow);
+    transition:
+      background-color var(--transition-slow),
+      color var(--transition-slow);
   }
 
   /* Improved focus styles */
@@ -203,11 +224,11 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-muted/30 rounded-full;
+    @apply rounded-full bg-muted/30;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/30 rounded-full hover:bg-muted-foreground/50;
+    @apply rounded-full bg-muted-foreground/30 hover:bg-muted-foreground/50;
   }
 
   /* Selection color */
@@ -220,7 +241,7 @@
   /* ==========================================================================
      GLASS MORPHISM EFFECTS
      ========================================================================== */
-  
+
   .glass {
     background: var(--glass-bg);
     backdrop-filter: blur(var(--glass-blur)) saturate(180%);
@@ -230,11 +251,15 @@
 
   .glass-card {
     @apply glass;
-    box-shadow: var(--shadow-lg), inset 0 1px 1px hsl(0 0% 100% / 0.1);
+    box-shadow:
+      var(--shadow-lg),
+      inset 0 1px 1px hsl(0 0% 100% / 0.1);
   }
 
   .dark .glass-card {
-    box-shadow: var(--shadow-lg), inset 0 1px 1px hsl(0 0% 100% / 0.05);
+    box-shadow:
+      var(--shadow-lg),
+      inset 0 1px 1px hsl(0 0% 100% / 0.05);
   }
 
   .glass-button {
@@ -287,23 +312,30 @@
   }
 
   .liquid-gradient {
-    background: linear-gradient(135deg, 
-      hsl(217 91% 60% / 0.9) 0%, 
-      hsl(262 83% 58% / 0.9) 50%, 
-      hsl(217 91% 60% / 0.9) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(217 91% 60% / 0.9) 0%,
+      hsl(262 83% 58% / 0.9) 50%,
+      hsl(217 91% 60% / 0.9) 100%
+    );
     background-size: 200% 200%;
     animation: gradient-shift 8s ease infinite;
   }
 
   @keyframes gradient-shift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
   }
 
   /* Mesh gradient background */
   .mesh-gradient {
     background-color: hsl(var(--background));
-    background-image: 
+    background-image:
       radial-gradient(at 40% 20%, hsl(217 91% 60% / 0.15) 0px, transparent 50%),
       radial-gradient(at 80% 0%, hsl(262 83% 58% / 0.1) 0px, transparent 50%),
       radial-gradient(at 0% 50%, hsl(142 71% 45% / 0.1) 0px, transparent 50%),
@@ -387,8 +419,12 @@
   }
 
   @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   @keyframes fade-in-up {
@@ -436,30 +472,50 @@
   }
 
   @keyframes bounce-subtle {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
   }
 
   @keyframes pulse-glow {
-    0%, 100% { 
+    0%,
+    100% {
       box-shadow: 0 0 20px hsl(217 91% 60% / 0.3);
     }
-    50% { 
+    50% {
       box-shadow: 0 0 40px hsl(217 91% 60% / 0.5);
     }
   }
 
   @keyframes shimmer {
-    from { background-position: 200% 0; }
-    to { background-position: -200% 0; }
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
   }
 
   /* Stagger animation delays */
-  .stagger-1 { animation-delay: 50ms; }
-  .stagger-2 { animation-delay: 100ms; }
-  .stagger-3 { animation-delay: 150ms; }
-  .stagger-4 { animation-delay: 200ms; }
-  .stagger-5 { animation-delay: 250ms; }
+  .stagger-1 {
+    animation-delay: 50ms;
+  }
+  .stagger-2 {
+    animation-delay: 100ms;
+  }
+  .stagger-3 {
+    animation-delay: 150ms;
+  }
+  .stagger-4 {
+    animation-delay: 200ms;
+  }
+  .stagger-5 {
+    animation-delay: 250ms;
+  }
 
   /* ==========================================================================
      INTERACTIVE STATES
@@ -494,7 +550,7 @@
      ========================================================================== */
 
   .status-dot {
-    @apply w-2 h-2 rounded-full;
+    @apply h-2 w-2 rounded-full;
   }
 
   .status-dot-success {
@@ -517,8 +573,15 @@
   }
 
   @keyframes status-pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.7; transform: scale(1.1); }
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(1.1);
+    }
   }
 
   /* ==========================================================================
@@ -526,11 +589,11 @@
      ========================================================================== */
 
   .container-tight {
-    @apply max-w-4xl mx-auto px-4;
+    @apply mx-auto max-w-4xl px-4;
   }
 
   .container-wide {
-    @apply max-w-7xl mx-auto px-4;
+    @apply mx-auto max-w-7xl px-4;
   }
 
   .section-spacing {

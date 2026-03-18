@@ -15,5 +15,5 @@ export default defineConfig(({ mode }) => ({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  base: '/park-it-easy-office/',
+  base: process.env.CAPACITOR === 'true' ? '/' : '/park-it-easy-office/',
 }));

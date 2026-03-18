@@ -40,9 +40,19 @@
     "test:e2e:report": "playwright show-report",
     "generate:favicons": "node scripts/generate-favicons.mjs",
     "delete:deployments": "node scripts/delete-deployments.mjs",
+    "build:capacitor": "CAPACITOR=true vite build",
+    "cap:sync": "pnpm build:capacitor && npx cap sync",
+    "cap:open": "npx cap open android",
+    "cap:run": "npx cap run android",
+    "cap:build": "pnpm cap:sync && JAVA_HOME=$(/usr/libexec/java_home -v 21) ANDROID_HOME=$HOME/Library/Android/sdk android/gradlew -p android assembleDebug",
+    "cap:release": "pnpm cap:sync && JAVA_HOME=$(/usr/libexec/java_home -v 21) ANDROID_HOME=$HOME/Library/Android/sdk android/gradlew -p android bundleRelease",
     "prepare": "husky"
   },
   "dependencies": {
+    "@capacitor/android": "^8.2.0",
+    "@capacitor/core": "^8.2.0",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.1",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.14",
@@ -95,6 +105,7 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.2.0",
     "@eslint/js": "^9.32.0",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/typography": "^0.5.16",
